@@ -5,31 +5,20 @@ jobs:
       - image: node:10-alpine
     steps:
       - checkout
-
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "image-search/package.json" }}
           - v1-dependencies-
-
       - run:
         name: Install dependencies
-        command: |
-          cd image-search
-          yarn install
-          cd ..
-
+        command: cd image-search && yarn install && cd ..
       - save_cache:
           paths:
             - image-search/node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
-
       - run:
         name: Test run
-        command: |
-          cd image-search
-          node index.js test output.txt
-          test -e output.txt
-
+        command: cd image-search && node index.js test output.txt && test -e output.txt
 workflows:
   version: 2
   build:
