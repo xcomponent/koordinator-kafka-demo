@@ -21,7 +21,7 @@ jobs:
           command: cd image-search && node index.js test output.txt && test -e output.txt
   build-download-image:
     docker:
-      - image: java:8
+      - image: circleci/openjdk:8-jdk-browsers
     steps:
       - checkout
       - restore_cache:
