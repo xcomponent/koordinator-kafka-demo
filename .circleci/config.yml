@@ -10,15 +10,15 @@ jobs:
           - v1-dependencies-{{ checksum "image-search/package.json" }}
           - v1-dependencies-
       - run:
-        name: Install dependencies
-        command: cd image-search && yarn install && cd ..
+          name: Install dependencies
+          command: cd image-search && yarn install && cd ..
       - save_cache:
           paths:
             - image-search/node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
       - run:
-        name: Test run
-        command: cd image-search && node index.js test output.txt && test -e output.txt
+          name: Test run
+          command: cd image-search && node index.js test output.txt && test -e output.txt
 workflows:
   version: 2
   build:
