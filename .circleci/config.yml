@@ -19,8 +19,27 @@ jobs:
       - run:
           name: Test run
           command: cd image-search && node index.js test output.txt && test -e output.txt
+  build-download-image:
+    docker:
+      - image: java:8
+    steps:
+      - checkout
+      - restore_cache:
+          key: v1-dependencies-java-{{ checksum "download-image/pom.xml" }}
+      - run: mvn dependency:go-offline
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-dependencies-java-{{ checksum "download-image/pom.xml" }}
+      - run:
+          name: Build
+          command: cd download-image && ./build.sh && cd ..
+      - run:
+          name: Test run
+          command: cd download-image && ./run.sh && test -e output.jpg
 workflows:
   version: 2
   build:
     jobs:
       - build-search-images
+      - build-download-image
