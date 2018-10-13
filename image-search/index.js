@@ -4,7 +4,8 @@ const gIS = require("g-i-s");
 const terms = process.argv[2];
 const outputFile = process.argv[3];
 
-console.log('terms: ', terms);
+console.log('search terms: ', terms);
+console.log('output file: ', outputFile);
 
 let outputData = '';
 
