@@ -15,7 +15,7 @@ jobs:
       - save_cache:
           paths:
             - image-search/node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
+          key: v1-dependencies-{{ checksum "image-search/package.json" }}
       - run:
           name: Test run
           command: cd image-search && node index.js test output.txt && test -e output.txt
