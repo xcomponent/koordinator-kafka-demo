@@ -16,9 +16,9 @@ jobs:
       - *restore_repo
       - checkout
       - save_cache:
-        key: v1-code-{{ .Branch }}-{{ .Revision }}
-        paths:
-          - .
+          key: v1-code-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - .
 
   build_search_images:
     docker:
