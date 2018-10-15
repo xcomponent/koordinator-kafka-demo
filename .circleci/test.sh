@@ -1,5 +1,5 @@
 #!/bin/bash
 
 cd download-image
-./test.sh kafka
+bash ./test.sh kafka
 
