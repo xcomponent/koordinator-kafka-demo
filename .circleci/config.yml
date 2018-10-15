@@ -19,12 +19,17 @@ jobs:
           key: v1-code-{{ .Branch }}-{{ .Revision }}
           paths:
             - .
+      - persist_to_workspace:
+          root: /home/circleci/project
+          paths:
+            - .
 
   build_search_images:
     docker:
       - image: node:10-alpine
     steps:
-      - *restore_repo
+      - attach_workspace:
+          at: /home/circleci/project
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "image-search/package.json" }}
