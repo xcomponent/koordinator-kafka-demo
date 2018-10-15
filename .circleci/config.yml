@@ -28,6 +28,7 @@ jobs:
     docker:
       - image: node:10-alpine
     steps:
+      - *restore_repo
       - attach_workspace:
           at: /home/circleci/project
       - restore_cache:
