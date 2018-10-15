@@ -36,7 +36,7 @@ jobs:
           command: cd download-image && ./build.sh && cd ..
       - run:
           name: Test run
-          command: cd download-image && ./run.sh && test -e output.jpg
+          command: cd download-image && ./test.sh
 workflows:
   version: 2
   build:
