@@ -69,10 +69,11 @@ jobs:
           command: cd download-image && ./build.sh && cd ..
       - run:
           name: Prepare tests
-          command: curl "http://www-eu.apache.org/dist/kafka/1.1.0/kafka_2.12-1.1.0.tgz" -o ~/kafka.tgz && |
-                   mkdir ~/kafka &&
-                   cd ~/kafka &&
-                   tar -xvzf ~/kafka.tgz --strip 1
+          command: >
+            curl "http://www-eu.apache.org/dist/kafka/1.1.0/kafka_2.12-1.1.0.tgz" -o ~/kafka.tgz &&
+            mkdir ~/kafka &&
+            cd ~/kafka &&
+            tar -xvzf ~/kafka.tgz --strip 1
       - run:
           name: Test run
           command: cd download-image && ./test.sh
