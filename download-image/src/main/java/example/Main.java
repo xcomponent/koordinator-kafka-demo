@@ -19,11 +19,11 @@ public class Main {
             producer(args[1], args[2], args[3]);
         }
         if ("consumer".equals(args[0])) {
-            consumer(args[1], args[2]);
+            consumer(args[1], args[2], args[3]);
         }
     }
 
-    private static void consumer(String groupId, String topicToRead) throws Exception {
+    private static void consumer(String groupId, String topicToRead, String outputDir) throws Exception {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
@@ -37,10 +37,21 @@ public class Main {
             boolean stopPolling = false;
             while (!stopPolling) {
                 ConsumerRecords<String, String> records = consumer.poll(Long.MAX_VALUE);
+                int count = 0;
                 for (ConsumerRecord<String, String> record : records) {
-                    System.out.println(record.partition() + " - " + record.offset() + ": " + record.value());
+                    String url = record.value();
+                    Integer partition = record.partition();
+                    System.out.println(partition + " - " + record.offset() + ": " + url);
+
                     if (KILL_MESSAGE.equals(record.key())) {
                         stopPolling = true;
+                        break;
+                    }
+                    try {
+                        downloadImage(url, outputDir + "/image-" + partition + "-" + count);
+                        count++;
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
             }
@@ -70,6 +81,7 @@ public class Main {
         }
 
         for(PartitionInfo partition : producer.partitionsFor(topicToWrite)) {
+            System.out.printf("Sending KILL message to partition: %d\n", partition.partition());
             producer.send(new ProducerRecord<>(
                         topicToWrite,
                         partition.partition(),
@@ -98,6 +110,9 @@ public class Main {
     private static String getExtensionFromContentType(String contentType) {
         if ("image/jpeg".equals(contentType)) {
             return ".jpg";
+        }
+        if ("image/png".equals(contentType)) {
+            return ".png";
         }
         return "";
     }
