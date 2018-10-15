@@ -16,16 +16,16 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         if ("producer".equals(args[0])) {
-            producer(args[1], args[2], args[3]);
+            producer(args[1], args[2], args[3], args[4]);
         }
         if ("consumer".equals(args[0])) {
-            consumer(args[1], args[2], args[3]);
+            consumer(args[1], args[2], args[3], args[4]);
         }
     }
 
-    private static void consumer(String groupId, String topicToRead, String outputDir) throws Exception {
+    private static void consumer(String broker, String groupId, String topicToRead, String outputDir) throws Exception {
         Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, broker+":9092");
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -61,9 +61,9 @@ public class Main {
 
     }
 
-    private static void producer(String clientId, String topicToWrite, String urlList) throws Exception {
+    private static void producer(String broker, String clientId, String topicToWrite, String urlList) throws Exception {
         Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, broker+":9092");
         props.put(ProducerConfig.CLIENT_ID_CONFIG, clientId);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
