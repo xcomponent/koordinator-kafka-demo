@@ -26,7 +26,7 @@ jobs:
 
   build_search_images:
     docker:
-      - image: node:10-alpine
+      - image: circleci/node:10.4
     steps:
       - *restore_repo
       - attach_workspace:
