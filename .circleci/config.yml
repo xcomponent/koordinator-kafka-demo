@@ -79,7 +79,7 @@ jobs:
       - run:
           name: Run tests with kafka
           command: |
-            docker run --volumes-from configs --link kafka:kafka circleci/openjdk:8-jdk-browsers /src/download-image/test.sh
+            docker run --volumes-from configs --link kafka:kafka circleci/openjdk:8-jdk-browsers /src/project/download-image/test.sh
 
 workflows:
   version: 2
