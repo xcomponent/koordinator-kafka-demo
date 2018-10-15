@@ -7,7 +7,7 @@ echo Kafka container $KAFKA started...
 sleep 30
 
 echo Creating topics..
-~/kafka/bin/kafka-topics.sh --create --zookeeper 127.0.0.1:2181 --replication-factor 1 --partitions 6 --topic $TOPIC
+~/kafka/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 6 --topic $TOPIC
 
 echo Running consumers...
 ./run-consumer.sh $TOPIC & 
