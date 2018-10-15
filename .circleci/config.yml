@@ -1,10 +1,36 @@
 version: 2
+references:
+  restore_repo: &restore_repo
+    restore_cache:
+      name: Restore checked out code
+      keys:
+        - v1-code-{{ .Branch }}-{{ .Revision }}
+        - v1-code-{{ .Branch }}-
+        - v1-code
+
 jobs:
-  build-search-images:
+  checkout_code:
     docker:
-      - image: node:10-alpine
+      - image: circleci/node:10.4
     steps:
+      - *restore_repo
       - checkout
+      - save_cache:
+          key: v1-code-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - .
+      - persist_to_workspace:
+          root: /home/circleci/project
+          paths:
+            - .
+
+  build_search_images:
+    docker:
+      - image: circleci/node:10.4
+    steps:
+      - *restore_repo
+      - attach_workspace:
+          at: /home/circleci/project
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "image-search/package.json" }}
@@ -19,11 +45,18 @@ jobs:
       - run:
           name: Test run
           command: cd image-search && node index.js test output.txt && test -e output.txt
-  build-download-image:
+      - persist_to_workspace:
+          root: /home/circleci/project
+          paths:
+            - image-search/output.txt
+
+  build_download_image:
     docker:
       - image: circleci/openjdk:8-jdk-browsers
     steps:
-      - checkout
+      - attach_workspace:
+          at: /home/circleci/project
+      - setup_remote_docker
       - restore_cache:
           key: v1-dependencies-java-{{ checksum "download-image/pom.xml" }}
       - run: cd download-image && mvn dependency:go-offline && cd ..
@@ -36,10 +69,16 @@ jobs:
           command: cd download-image && ./build.sh && cd ..
       - run:
           name: Test run
-          command: cd download-image && ./run.sh && test -e output.jpg
+          command: cd download-image && ./test.sh
+
 workflows:
   version: 2
-  build:
+  build_and_test:
     jobs:
-      - build-search-images
-      - build-download-image
+      - checkout_code
+      - build_search_images:
+          requires:
+            - checkout_code
+      - build_download_image:
+          requires:
+            - build_search_images
