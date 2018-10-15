@@ -40,6 +40,7 @@ jobs:
           name: Test run
           command: cd image-search && node index.js test output.txt && test -e output.txt
       - persist_to_workspace:
+          root: /home/project
           paths:
             - search-images/output.txt
 
