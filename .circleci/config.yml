@@ -1,10 +1,30 @@
 version: 2
+references:
+  restore_repo: &restore_repo
+    restore_cache:
+      name: Restore checked out code
+      keys:
+        - v1-code-{{ .Branch }}-{{ .Revision }}
+        - v3-code-{{ .Branch }}-
+        - v3-code
+
 jobs:
-  build-search-images:
+  checkout_code:
+    docker:
+      - image: circleci/node:10.4
+    steps:
+      - *restore_repo
+      - checkout
+      - save_cache:
+        key: v1-code-{{ .Branch }}-{{ .Revision }}
+        paths:
+          - .
+
+  build_search_images:
     docker:
       - image: node:10-alpine
     steps:
-      - checkout
+      - *restore_repo
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "image-search/package.json" }}
@@ -19,12 +39,17 @@ jobs:
       - run:
           name: Test run
           command: cd image-search && node index.js test output.txt && test -e output.txt
-  build-download-image:
+      - persist_to_workspace:
+          paths:
+            - search-images/output.txt
+
+  build_download_image:
     docker:
       - image: circleci/openjdk:8-jdk-browsers
     steps:
+      - attach_workspace:
+          at: /home/project
       - setup_remote_docker
-      - checkout
       - restore_cache:
           key: v1-dependencies-java-{{ checksum "download-image/pom.xml" }}
       - run: cd download-image && mvn dependency:go-offline && cd ..
@@ -38,9 +63,15 @@ jobs:
       - run:
           name: Test run
           command: cd download-image && ./test.sh
+
 workflows:
   version: 2
-  build:
+  build_and_test:
     jobs:
-      - build-search-images
-      - build-download-image
+      - checkout_code
+      - build_search_images:
+          requires:
+            - checkout_code
+      - build_download_image:
+          requires:
+            - build_search_images
