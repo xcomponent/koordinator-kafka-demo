@@ -5,8 +5,8 @@ references:
       name: Restore checked out code
       keys:
         - v1-code-{{ .Branch }}-{{ .Revision }}
-        - v3-code-{{ .Branch }}-
-        - v3-code
+        - v1-code-{{ .Branch }}-
+        - v1-code
 
 jobs:
   checkout_code:
@@ -40,7 +40,7 @@ jobs:
           name: Test run
           command: cd image-search && node index.js test output.txt && test -e output.txt
       - persist_to_workspace:
-          root: /home/project
+          root: /home/circleci/project
           paths:
             - search-images/output.txt
 
@@ -49,7 +49,7 @@ jobs:
       - image: circleci/openjdk:8-jdk-browsers
     steps:
       - attach_workspace:
-          at: /home/project
+          at: /home/circleci/project
       - setup_remote_docker
       - restore_cache:
           key: v1-dependencies-java-{{ checksum "download-image/pom.xml" }}
