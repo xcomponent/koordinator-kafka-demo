@@ -48,7 +48,7 @@ jobs:
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
-            - search-images/output.txt
+            - image-search/output.txt
 
   build_download_image:
     docker:
