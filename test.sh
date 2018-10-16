@@ -20,6 +20,7 @@ bash ./run.sh &
 WORKERS_PID=$!
 
 WORKFLOW_DEFINITION_NAME=MeetupScenarioCircleCI
+WORKFLOW_DEFINITION_VERSION=3
 
 curl $WORKFLOW_SERVICE_URL'/api/start' \
     -H 'Authorization: Bearer '$GENERATED_TOKEN \
@@ -27,7 +28,7 @@ curl $WORKFLOW_SERVICE_URL'/api/start' \
     --silent \
     --data-binary '{
         "WorkflowDefinitionId":"30d31d64-de09-469e-819a-bf09fb26975d",
-        "WorkflowDefinitionVersionNumber":2,
+        "WorkflowDefinitionVersionNumber":'$WORKFLOW_DEFINITION_VERSION',
         "WorkflowName":"'$WORKFLOW_DEFINITION_NAME'",
         "InputParameters":{"terms":"test"}
     }'
