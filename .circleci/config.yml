@@ -77,6 +77,10 @@ jobs:
           command: |
             docker run --name kafka -d --rm -p 2181:2181 -p 9092:9092 --env ADVERTISED_HOST=kafka --env ADVERTISED_PORT=9092 --env AUTO_CREATE_TOPICS=true -h kafka spotify/kafka
       - run:
+          name: Install kafka tools
+          command: |
+            /home/circleci/project/install_kafka.sh
+      - run:
           name: Run tests with kafka
           command: |
             docker run --volumes-from configs --link kafka:kafka circleci/openjdk:8-jdk-browsers /src/project/.circleci/test.sh

@@ -3,8 +3,8 @@ set -o errexit
 set -o nounset
 
 BROKER=$1
-TOPIC=urls18
-LIMIT=20
+LIMIT=$2
+TOPIC=$3
 
 echo Creating topics..
 ~/kafka/bin/kafka-topics.sh --create --zookeeper $BROKER:2181 --replication-factor 1 --partitions 6 --topic $TOPIC
@@ -18,14 +18,13 @@ echo Started consumer PID=$P1!
 P2=$!
 echo Started consumer PID=$P2!
 
-./run-consumer.sh $TOPIC $BROKER & 
+./run-consumer.sh $TOPIC $BROKER &
 P3=$!
 echo Started consumer PID=$P3!
 
 sleep 30
 echo Running producer...
-./run-producer.sh $TOPIC $BROKER $LIMIT &
-P4=$!
-echo Started producer PID=$P4!
+./run-producer.sh $TOPIC $BROKER $LIMIT
 
-wait $P1 $P2 $P3 $P4
+echo Running waiting for consumers to die...
+wait $P1 $P2 $P3

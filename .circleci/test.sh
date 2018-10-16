@@ -3,4 +3,4 @@ set -o errexit
 set -o nounset
 
 cd /src/project/download-image
-bash ./test.sh kafka 3
+bash ./test-multi.sh kafka 12 urls

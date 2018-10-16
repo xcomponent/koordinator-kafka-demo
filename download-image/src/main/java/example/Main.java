@@ -26,6 +26,7 @@ public class Main {
     private static void consumer(String broker, String groupId, String topicToRead, String outputDir) throws Exception {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, broker+":9092");
+        props.put(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
