@@ -6,6 +6,7 @@ import java.util.*;
 import java.net.*;
 import java.security.*;
 import java.security.cert.*;
+import javax.json.*;
 import org.apache.kafka.common.*;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.clients.consumer.*;
@@ -20,6 +21,51 @@ public class Main {
         }
         if ("consumer".equals(args[0])) {
             consumer(args[1], args[2], args[3], args[4]);
+        }
+        if ("producerWorker".equals(args[0])) {
+            producerWorker();
+        }
+        if ("consumerWorker".equals(args[0])) {
+            consumerWorker();
+        }
+    }
+
+    private static void consumerWorker() throws Exception {
+        while (true) {
+           JsonObject task = Koordinator.retrieveTask("Meetup", "UrlsConsumer");
+
+           if (task != null) {
+                String broker = ((JsonString)((JsonObject)task.get("inputData")).get("broker")).getString();
+                String groupId = ((JsonString)((JsonObject)task.get("inputData")).get("groupId")).getString();
+                String inputTopic = ((JsonString)((JsonObject)task.get("inputData")).get("input-topic")).getString();
+                String outputDir = ((JsonString)((JsonObject)task.get("inputData")).get("output-dir")).getString();
+
+                consumer(broker, groupId, inputTopic, outputDir);
+
+                Koordinator.sendStatus(task, "Finished", Koordinator.Status.Completed, Koordinator.ErrorLevel.None);
+           }
+
+           Thread.sleep(5000);
+        }
+    }
+
+    private static void producerWorker() throws Exception {
+        while (true) {
+           JsonObject task = Koordinator.retrieveTask("Meetup", "UrlsProducer");
+
+           if (task != null) {
+                String broker = ((JsonString)((JsonObject)task.get("inputData")).get("broker")).getString();
+                String clientId = ((JsonString)((JsonObject)task.get("inputData")).get("clientId")).getString();
+                String outputTopic = ((JsonString)((JsonObject)task.get("inputData")).get("output-topic")).getString();
+                String inputFile = ((JsonString)((JsonObject)task.get("inputData")).get("input-file")).getString();
+                int limit = Integer.parseInt(((JsonString)((JsonObject)task.get("inputData")).get("limit")).getString());
+
+                producer(broker, clientId, outputTopic, inputFile, limit);
+
+                Koordinator.sendStatus(task, "Finished", Koordinator.Status.Completed, Koordinator.ErrorLevel.None);
+           }
+
+           Thread.sleep(5000);
         }
     }
 

@@ -2,8 +2,11 @@
 set -o errexit
 set -o nounset
 
-echo Installing Kafka tools...
-/src/project/install_kafka.sh
+echo Installing NodeJs...
+curl -sL https://deb.nodesource.com/setup_10.x | sudo bash - && sudo apt install nodejs -y
+cd /src/project/image-search
+npm install 
+cd ..
 
-cd /src/project/download-image
-bash ./test-multi.sh kafka 12 urls ~/kafka
+cd /src/project/
+bash ./test.sh
