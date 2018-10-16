@@ -1,5 +1,4 @@
 #!/bin/bash
 
-cd download-image
+cd /src/project/download-image
 bash ./test.sh kafka
-
