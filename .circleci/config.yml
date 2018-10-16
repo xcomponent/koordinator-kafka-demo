@@ -94,6 +94,5 @@ workflows:
           requires:
             - checkout_code
       - build_download_image:
-          context: CCenter
           requires:
             - build_search_images
