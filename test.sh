@@ -25,7 +25,7 @@ curl $WORKFLOW_SERVICE_URL'/api/start' \
     --silent \
     --data-binary '{
         "WorkflowDefinitionId":"30d31d64-de09-469e-819a-bf09fb26975d",
-        "WorkflowDefinitionVersionNumber":15,
+        "WorkflowDefinitionVersionNumber":2,
         "WorkflowName":"MeetupScenarioCircleCI",
         "InputParameters":{"terms":"test"}
     }'
