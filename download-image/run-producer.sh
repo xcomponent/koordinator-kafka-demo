@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -o errexit
+set -o nounset
 
 TOPIC=$1
 BROKER=$2
