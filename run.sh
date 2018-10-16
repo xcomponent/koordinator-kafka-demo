@@ -26,6 +26,6 @@ cd ..
 echo Press ENTER to stop
 read
 
-kill -9 $P1
-kill -9 $P2
-kill -9 $P3
+kill -9 $P1 || true
+kill -9 $P2 || true
+kill -9 $P3 || true

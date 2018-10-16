@@ -45,4 +45,4 @@ while :; do
     sleep 1
 done
 
-kill -9 $WORKERS_PID
+kill -9 $WORKERS_PID || true
