@@ -1,25 +1,52 @@
+const koor = require("./koordinator.js");
 const fs = require("fs");
 const gIS = require("g-i-s");
 
-const terms = process.argv[2];
-const outputFile = process.argv[3];
+const namespace = "Meetup";
+const name = "ImageSearch";
 
-console.log('search terms: ', terms);
-console.log('output file: ', outputFile);
+koor.postCatalog({
+  namespace: namespace,
+  name: name,
+  displayName: name,
+  inputs: [
+    {
+      name: "terms",
+      baseType: "string"
+    },
+    {
+      name: "outputFile",
+      baseType: "string"
+    }
+  ],
+  schemaVersion: 0
+});
 
-let outputData = '';
+koor.pollingLoop(namespace, name, async task => {
+    const terms = task.inputData.terms;
+    const outputFile = task.inputData.outputFile;
 
-gIS(terms, cb);
+    console.log('search terms: ', terms);
+    console.log('output file: ', outputFile);
 
-function cb(error, results) {
-  if (error) {
-    console.log(error);
-  }
-  else {
-      for(var i in results) {
-        outputData += results[i].url + "\n";
+    let outputData = '';
+
+    gIS(terms, cb);
+
+    async function cb(error, results) {
+      if (error) {
+        console.log(error);
+        await koor.postStatus(task, { status: "Error", errorLevel: "Fatal" });
       }
-      
-      fs.writeFileSync(outputFile, outputData);
-  }
-}
+      else {
+          for(var i in results) {
+            outputData += results[i].url + "\n";
+          }
+          
+          fs.writeFileSync(outputFile, outputData);
+          
+          await koor.postStatus(task, { status: "Completed" });
+      }
+    }
+});
+
