@@ -19,6 +19,8 @@ echo token: $GENERATED_TOKEN
 bash ./run.sh &
 WORKERS_PID=$!
 
+WORKFLOW_DEFINITION_NAME=MeetupScenarioCircleCI
+
 curl $WORKFLOW_SERVICE_URL'/api/start' \
     -H 'Authorization: Bearer '$GENERATED_TOKEN \
     -H 'Content-Type: application/json' \
@@ -26,14 +28,14 @@ curl $WORKFLOW_SERVICE_URL'/api/start' \
     --data-binary '{
         "WorkflowDefinitionId":"30d31d64-de09-469e-819a-bf09fb26975d",
         "WorkflowDefinitionVersionNumber":2,
-        "WorkflowName":"MeetupScenarioCircleCI",
+        "WorkflowName":"'$WORKFLOW_DEFINITION_NAME'",
         "InputParameters":{"terms":"test"}
     }'
 
 WORKFLOWS_COUNT=0
 
 while :; do
-    WORKFLOWS_COUNT=$(curl $MONITORING_SERVICE_URL'/api/WorkspaceWorkflowInstances?workspaceName=DefaultWorkspace&workflowInstanceStatus=Running&workflowInstanceName=MeetupScenario' \
+    WORKFLOWS_COUNT=$(curl $MONITORING_SERVICE_URL'/api/WorkspaceWorkflowInstances?workspaceName=DefaultWorkspace&workflowInstanceStatus=Running&workflowInstanceName='$WORKFLOW_DEFINITION_NAME \
         --silent \
         -H 'Authorization: Bearer '$GENERATED_TOKEN | jq --raw-output 'length')
 
