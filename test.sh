@@ -24,9 +24,9 @@ curl $WORKFLOW_SERVICE_URL'/api/start' \
     -H 'Content-Type: application/json' \
     --silent \
     --data-binary '{
-        "WorkflowDefinitionId":"898d1430-cbdf-11e8-b7d3-a31a303f2ab5",
+        "WorkflowDefinitionId":"30d31d64-de09-469e-819a-bf09fb26975d",
         "WorkflowDefinitionVersionNumber":15,
-        "WorkflowName":"MeetupScenario",
+        "WorkflowName":"MeetupScenarioCircleCI",
         "InputParameters":{"terms":"test"}
     }'
 
