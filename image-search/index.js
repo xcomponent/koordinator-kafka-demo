@@ -5,27 +5,7 @@ const gIS = require("g-i-s");
 const namespace = "Meetup";
 const name = "ImageSearch";
 
-koor.postCatalog({
-  namespace: namespace,
-  name: name,
-  displayName: name,
-  inputs: [
-    {
-      name: "terms",
-      baseType: "string"
-    },
-    {
-      name: "outputFile",
-      baseType: "string"
-    }
-  ],
-  schemaVersion: 0
-});
-
-koor.pollingLoop(namespace, name, async task => {
-    const terms = task.inputData.terms;
-    const outputFile = task.inputData.outputFile;
-
+function doWork(terms, outputFile, cbWork) {
     console.log('search terms: ', terms);
     console.log('output file: ', outputFile);
 
@@ -36,7 +16,7 @@ koor.pollingLoop(namespace, name, async task => {
     async function cb(error, results) {
       if (error) {
         console.log(error);
-        await koor.postStatus(task, { status: "Error", errorLevel: "Fatal" });
+        cbWork(error);
       }
       else {
           for(var i in results) {
@@ -44,9 +24,45 @@ koor.pollingLoop(namespace, name, async task => {
           }
           
           fs.writeFileSync(outputFile, outputData);
-          
-          await koor.postStatus(task, { status: "Completed" });
+          cbWork();
       }
     }
-});
 
+}
+
+if (process.argv[2]) {
+   const terms = process.argv[2];
+   const outputFile = process.argv[3]; 
+
+   doWork(terms, outputFile, () => {});
+} else {
+    koor.postCatalog({
+      namespace: namespace,
+      name: name,
+      displayName: name,
+      inputs: [
+        {
+          name: "terms",
+          baseType: "string"
+        },
+        {
+          name: "outputFile",
+          baseType: "string"
+        }
+      ],
+      schemaVersion: 0
+    });
+
+    koor.pollingLoop(namespace, name, async task => {
+        const terms = task.inputData.terms;
+        const outputFile = task.inputData.outputFile;
+
+        doWork(terms, outputFile, async function cb(error) {
+            if (error) {
+                await koor.postStatus(task, { status: "Error", errorLevel: "Fatal" });
+            } else {
+              await koor.postStatus(task, { status: "Completed" });
+            }
+        })
+    });
+}
