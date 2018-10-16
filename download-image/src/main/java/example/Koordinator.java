@@ -37,8 +37,6 @@ public class Koordinator {
         try {
             URL url = new URL(String.format("%s/api/Cancelled?catalogTaskDefinitionNamespace=%s&taskInstanceId=%s", TaskQueueServiceUrl, taskNamespace, taskInstanceId));
 
-            System.out.printf("Connecting to %s...\n", url.toString());
-
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.setRequestProperty("Authorization", "bearer " + Token);

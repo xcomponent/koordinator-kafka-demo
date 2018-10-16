@@ -25,6 +25,28 @@ public class Main {
         if ("producerWorker".equals(args[0])) {
             producerWorker();
         }
+        if ("consumerWorker".equals(args[0])) {
+            consumerWorker();
+        }
+    }
+
+    private static void consumerWorker() throws Exception {
+        while (true) {
+           JsonObject task = Koordinator.retrieveTask("Meetup", "UrlsConsumer");
+
+           if (task != null) {
+                String broker = ((JsonString)((JsonObject)task.get("inputData")).get("broker")).getString();
+                String groupId = ((JsonString)((JsonObject)task.get("inputData")).get("groupId")).getString();
+                String inputTopic = ((JsonString)((JsonObject)task.get("inputData")).get("input-topic")).getString();
+                String outputDir = ((JsonString)((JsonObject)task.get("inputData")).get("output-dir")).getString();
+
+                consumer(broker, groupId, inputTopic, outputDir);
+
+                Koordinator.sendStatus(task, "Finished", Koordinator.Status.Completed, Koordinator.ErrorLevel.None);
+           }
+
+           Thread.sleep(5000);
+        }
     }
 
     private static void producerWorker() throws Exception {
