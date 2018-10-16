@@ -10,8 +10,8 @@ GENERATED_TOKEN=$(curl $AUTH_SERVICE_URL'/api/Authentication/User' \
                         -H 'Content-Type: application/json' \
                         --silent \
                         --data-binary '{
-                            "username": "workerMeetup",
-                            "password":"workerMeetup"
+                            "username": "'$WORKER_USERNAME'",
+                            "password":"'$WORKER_PASSWORD'"
                         }' | jq --raw-output '.value')
 
 echo token: $GENERATED_TOKEN
