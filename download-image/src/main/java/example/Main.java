@@ -16,7 +16,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         if ("producer".equals(args[0])) {
-            producer(args[1], args[2], args[3], args[4]);
+            producer(args[1], args[2], args[3], args[4], Integer.parseInt(args[5]));
         }
         if ("consumer".equals(args[0])) {
             consumer(args[1], args[2], args[3], args[4]);
@@ -61,7 +61,7 @@ public class Main {
 
     }
 
-    private static void producer(String broker, String clientId, String topicToWrite, String urlList) throws Exception {
+    private static void producer(String broker, String clientId, String topicToWrite, String urlList, int limit) throws Exception {
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, broker+":9092");
         props.put(ProducerConfig.CLIENT_ID_CONFIG, clientId);
@@ -71,13 +71,14 @@ public class Main {
         KafkaProducer<String, String> producer = new KafkaProducer<>(props);
         BufferedReader br = new BufferedReader(new FileReader(urlList));
 
-        while(true) {
+        while(limit>0) {
             String line = br.readLine();
             if (line == null) break;
 
             // no key, it will be distributed in round robin through partitions
             System.out.printf("Url: %s\n", line);
             producer.send(new ProducerRecord<>(topicToWrite, line.trim()));
+            limit--;
         }
 
         for(PartitionInfo partition : producer.partitionsFor(topicToWrite)) {
