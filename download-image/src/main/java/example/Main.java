@@ -16,16 +16,17 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         if ("producer".equals(args[0])) {
-            producer(args[1], args[2], args[3]);
+            producer(args[1], args[2], args[3], args[4], Integer.parseInt(args[5]));
         }
         if ("consumer".equals(args[0])) {
-            consumer(args[1], args[2]);
+            consumer(args[1], args[2], args[3], args[4]);
         }
     }
 
-    private static void consumer(String groupId, String topicToRead) throws Exception {
+    private static void consumer(String broker, String groupId, String topicToRead, String outputDir) throws Exception {
         Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, broker+":9092");
+        props.put(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -37,10 +38,21 @@ public class Main {
             boolean stopPolling = false;
             while (!stopPolling) {
                 ConsumerRecords<String, String> records = consumer.poll(Long.MAX_VALUE);
+                int count = 0;
                 for (ConsumerRecord<String, String> record : records) {
-                    System.out.println(record.partition() + " - " + record.offset() + ": " + record.value());
+                    String url = record.value();
+                    Integer partition = record.partition();
+                    System.out.println(partition + " - " + record.offset() + ": " + url);
+
                     if (KILL_MESSAGE.equals(record.key())) {
                         stopPolling = true;
+                        break;
+                    }
+                    try {
+                        downloadImage(url, outputDir + "/image-" + partition + "-" + count);
+                        count++;
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
             }
@@ -50,9 +62,9 @@ public class Main {
 
     }
 
-    private static void producer(String clientId, String topicToWrite, String urlList) throws Exception {
+    private static void producer(String broker, String clientId, String topicToWrite, String urlList, int limit) throws Exception {
         Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, broker+":9092");
         props.put(ProducerConfig.CLIENT_ID_CONFIG, clientId);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
@@ -60,16 +72,18 @@ public class Main {
         KafkaProducer<String, String> producer = new KafkaProducer<>(props);
         BufferedReader br = new BufferedReader(new FileReader(urlList));
 
-        while(true) {
+        while(limit>0) {
             String line = br.readLine();
             if (line == null) break;
 
             // no key, it will be distributed in round robin through partitions
             System.out.printf("Url: %s\n", line);
             producer.send(new ProducerRecord<>(topicToWrite, line.trim()));
+            limit--;
         }
 
         for(PartitionInfo partition : producer.partitionsFor(topicToWrite)) {
+            System.out.printf("Sending KILL message to partition: %d\n", partition.partition());
             producer.send(new ProducerRecord<>(
                         topicToWrite,
                         partition.partition(),
@@ -98,6 +112,9 @@ public class Main {
     private static String getExtensionFromContentType(String contentType) {
         if ("image/jpeg".equals(contentType)) {
             return ".jpg";
+        }
+        if ("image/png".equals(contentType)) {
+            return ".png";
         }
         return "";
     }

@@ -68,8 +68,18 @@ jobs:
           name: Build
           command: cd download-image && ./build.sh && cd ..
       - run:
-          name: Test run
-          command: cd download-image && ./test.sh
+          name: Configure tests container
+          command: |
+            docker create -v /src --name configs alpine:3.7 /bin/true
+            docker cp /home/circleci/project configs:/src
+      - run:
+          name: Run kafka container
+          command: |
+            docker run --name kafka -d --rm -p 2181:2181 -p 9092:9092 --env ADVERTISED_HOST=kafka --env ADVERTISED_PORT=9092 --env AUTO_CREATE_TOPICS=true -h kafka spotify/kafka
+      - run:
+          name: Run tests with kafka
+          command: |
+            docker run --volumes-from configs --link kafka:kafka circleci/openjdk:8-jdk-browsers /src/project/.circleci/test.sh
 
 workflows:
   version: 2
