@@ -5,9 +5,10 @@ set -o nounset
 BROKER=$1
 LIMIT=$2
 TOPIC=$3
+KAFKA_TOOLS=$4
 
 echo Creating topics..
-~/kafka/bin/kafka-topics.sh --create --zookeeper $BROKER:2181 --replication-factor 1 --partitions 6 --topic $TOPIC
+$KAFKA_TOOLS/bin/kafka-topics.sh --create --zookeeper $BROKER:2181 --replication-factor 1 --partitions 6 --topic $TOPIC
 
 echo Running consumers...
 ./run-consumer.sh $TOPIC $BROKER & 
