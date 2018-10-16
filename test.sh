@@ -22,7 +22,7 @@ WORKERS_PID=$!
 curl $WORKFLOW_SERVICE_URL'/api/start' \
     -H 'Authorization: Bearer '$GENERATED_TOKEN \
     -H 'Content-Type: application/json' \
-    --verbose \
+    --silent \
     --data-binary '{
         "WorkflowDefinitionId":"898d1430-cbdf-11e8-b7d3-a31a303f2ab5",
         "WorkflowDefinitionVersionNumber":15,
@@ -34,7 +34,7 @@ WORKFLOWS_COUNT=0
 
 while :; do
     WORKFLOWS_COUNT=$(curl $MONITORING_SERVICE_URL'/api/WorkspaceWorkflowInstances?workspaceName=DefaultWorkspace&workflowInstanceStatus=Running&workflowInstanceName=MeetupScenario' \
-        --verbose \
+        --silent \
         -H 'Authorization: Bearer '$GENERATED_TOKEN | jq --raw-output 'length')
 
     echo count: $WORKFLOWS_COUNT
