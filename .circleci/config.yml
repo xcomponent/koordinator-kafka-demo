@@ -56,10 +56,11 @@ jobs:
     steps:
       - attach_workspace:
           at: /home/circleci/project
-      - setup_remote_docker
       - restore_cache:
           key: v1-dependencies-java-{{ checksum "download-image/pom.xml" }}
-      - run: cd download-image && mvn dependency:go-offline && cd ..
+      - run: 
+          name: Installing dependencies
+          command: cd download-image && mvn dependency:go-offline && cd ..
       - save_cache:
           paths:
             - ~/.m2
@@ -67,6 +68,18 @@ jobs:
       - run:
           name: Build
           command: cd download-image && ./build.sh && cd ..
+      - persist_to_workspace:
+          root: /home/circleci/project
+          paths:
+            - download-image/target
+
+  test:
+    docker:
+      - image: circleci/openjdk:8-jdk-browsers
+    steps:
+      - attach_workspace:
+          at: /home/circleci/project
+      - setup_remote_docker
       - run:
           name: Configure tests container
           command: |
@@ -95,4 +108,8 @@ workflows:
             - checkout_code
       - build_download_image:
           requires:
+            - checkout_code
+      - test:
+          requires:
             - build_search_images
+            - build_download_image
