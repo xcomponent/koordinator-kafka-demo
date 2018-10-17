@@ -83,7 +83,7 @@ jobs:
       - run:
           name: Run Koordinator tests with kafka
           command: |
-            docker run --volumes-from configs --link kafka:kafka --env WORKER_USERNAME=$WORKER_USERNAME --env WORKER_PASSWORD=$WORKER_PASSWORD --env WORKER_TOKEN=$WORKER_TOKEN circleci/openjdk:8-jdk-browsers /src/project/.circleci/test.sh
+            docker run --volumes-from configs --link kafka:kafka --env WORKER_USERNAME=$WORKER_USERNAME --env WORKER_PASSWORD=$WORKER_PASSWORD circleci/openjdk:8-jdk-browsers /src/project/.circleci/test.sh
 
 workflows:
   version: 2

@@ -16,6 +16,8 @@ GENERATED_TOKEN=$(curl $AUTH_SERVICE_URL'/api/Authentication/User' \
 
 echo token: $GENERATED_TOKEN
 
+export WORKER_TOKEN=$GENERATED_TOKEN
+
 bash ./run.sh &
 WORKERS_PID=$!
 
