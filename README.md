@@ -18,8 +18,8 @@ download the images in parallel.
 
 ## Build
 
-Each worker folder contains a script called `./build.sh` that builds the
-worker. 
+1. Install the dependencies of the `image-search` worker: `cd image-search && yarn install && cd ..`
+2. Build the `download-image` worker: `cd download-image && ./build.sh && cd ..`
 
 ## Run
 
