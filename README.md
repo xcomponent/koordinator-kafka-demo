@@ -1,5 +1,5 @@
 [![](http://slack.xcomponent.com/badge.svg)](http://slack.xcomponent.com/)
-[![Build Status](https://travis-ci.org/xcomponent/koordinator-kafka-demo.svg?branch=master)](https://travis-ci.org/xcomponent/koordinator-kafka-demo)
+[![CircleCI](https://circleci.com/gh/xcomponent/koordinator-kafka-demo/tree/master.svg?style=svg)](https://circleci.com/gh/xcomponent/koordinator-kafka-demo/tree/master)
 [![TypeScript](https://badges.frapsoft.com/typescript/love/typescript.png?v=101)](https://github.com/ellerbrock/typescript-badges/)
 
 # Koordinator Kafka Demo
