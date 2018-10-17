@@ -18,7 +18,7 @@ echo token: $GENERATED_TOKEN
 
 export WORKER_TOKEN=$GENERATED_TOKEN
 
-bash ./run.sh &
+bash ./run-workers.sh &
 WORKERS_PID=$!
 
 WORKFLOW_DEFINITION_NAME=MeetupScenarioCircleCI
