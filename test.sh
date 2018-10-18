@@ -2,9 +2,9 @@
 set -o errexit
 set -o nounset
 
-export WORKFLOW_SERVICE_URL=https://ccenter.xcomponent.com/workflowsservice
-export MONITORING_SERVICE_URL=https://ccenter.xcomponent.com/monitoringservice
-export AUTH_SERVICE_URL=https://ccenter.xcomponent.com/authenticationservice
+export WORKFLOW_SERVICE_URL=$KOORDINATOR_URL/workflowsservice
+export MONITORING_SERVICE_URL=$KOORDINATOR_URL/monitoringservice
+export AUTH_SERVICE_URL=$KOORDINATOR_URL/authenticationservice
 
 GENERATED_TOKEN=$(curl $AUTH_SERVICE_URL'/api/Authentication/User' \
                         -H 'Content-Type: application/json' \

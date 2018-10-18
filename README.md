@@ -14,7 +14,7 @@ download the images in parallel.
 
 * A Kafka broker, in our tests we use [this](https://hub.docker.com/r/spotify/kafka/) docker container
 * Set the variables `WORKER_USERNAME` and `WORKER_PASSWORD` as your credentials
-  in the Koordinator server.
+  in the Koordinator server, and `KOORDINATOR_URL` as the url of your server.
 
 ## Build
 
