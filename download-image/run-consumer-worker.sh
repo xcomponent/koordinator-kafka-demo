@@ -8,7 +8,7 @@ curl -X POST \
   -H 'accept: application/json' \
   -H 'authorization: '$WORKER_TOKEN \
   -H 'content-type: application/json' \
-  --verbose \
+  --silent \
   -d '{
    "catalogTaskDefinitions": [ 
      {
