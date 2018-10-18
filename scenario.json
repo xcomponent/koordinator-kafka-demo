@@ -4,78 +4,48 @@
   "type": "CommandCenter",
   "tasks": [
     {
-      "type": "Fork",
-      "catalogTaskDefinitionVersion": 0,
-      "id": "3ef0b3b0-7c8d-42ce-8a09-4430b66e4198",
+      "type": "Worker",
+      "catalogTaskDefinitionNamespace": "Meetup",
+      "catalogTaskDefinitionName": "ImageSearch",
+      "catalogTaskDefinitionVersion": 1,
+      "id": "dd353e51-7213-40f9-8dd7-adb192510dc9",
+      "description": "Search Images",
+      "inputData": {
+        "terms": "[workflowInstance.inputData.terms]",
+        "outputFile": "[workflowInstance.Id].txt"
+      }
+    },
+    {
+      "type": "Pipeline",
       "subTasks": [
         {
-          "type": "Sequence",
-          "catalogTaskDefinitionVersion": 0,
-          "id": "9c143652-e2ff-4bba-872d-c0fd26f8b0f1",
-          "subTasks": [
-            {
-              "type": "Worker",
-              "catalogTaskDefinitionNamespace": "Meetup",
-              "catalogTaskDefinitionName": "ImageSearch",
-              "catalogTaskDefinitionVersion": 1,
-              "id": "dd353e51-7213-40f9-8dd7-adb192510dc9",
-              "description": "Search Images",
-              "inputData": {
-                "terms": "[workflowInstance.inputData.terms]",
-                "outputFile": "[workflowInstance.Id].txt"
-              }
-            },
-            {
-              "type": "Pipeline",
-              "catalogTaskDefinitionVersion": 0,
-              "id": "09480247-6d01-4921-b15b-3764c9d3d662",
-              "subTasks": [
-                {
-                  "type": "Fork",
-                  "catalogTaskDefinitionVersion": 0,
-                  "id": "5c3139ff-bc5b-410b-8830-1c9075683138",
-                  "subTasks": [
-                    {
-                      "type": "Sequence",
-                      "catalogTaskDefinitionVersion": 0,
-                      "id": "2a66d7b0-56f8-42d1-9e81-f53fc561c7c6",
-                      "subTasks": [
-                        {
-                          "type": "Worker",
-                          "catalogTaskDefinitionNamespace": "Meetup",
-                          "catalogTaskDefinitionName": "UrlsProducer",
-                          "catalogTaskDefinitionVersion": 1,
-                          "id": "4761b16b-56cd-4313-ab22-d7232a11e215",
-                          "description": "Producer",
-                          "inputData": {
-                            "broker": "kafka",
-                            "clientId": "[workflowInstance.Id]",
-                            "output-topic": "[workflowInstance.Id]",
-                            "input-file": "/src/project/image-search/[workflowInstance.Id].txt",
-                            "limit": "10"
-                          }
-                        },
-                        {
-                          "type": "Worker",
-                          "catalogTaskDefinitionNamespace": "Meetup",
-                          "catalogTaskDefinitionName": "UrlsConsumer",
-                          "catalogTaskDefinitionVersion": 1,
-                          "id": "a1896901-0c01-4839-b556-12517e01f8dd",
-                          "description": "Consumer",
-                          "inputData": {
-                            "broker": "kafka",
-                            "groupId": "[workflowInstance.Id]",
-                            "input-topic": "[workflowInstance.Id]",
-                            "output-dir": "/src/project/download-image/images/"
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+          "type": "Worker",
+          "catalogTaskDefinitionNamespace": "Meetup",
+          "catalogTaskDefinitionName": "UrlsProducer",
+          "catalogTaskDefinitionVersion": 1,
+          "id": "4761b16b-56cd-4313-ab22-d7232a11e215",
+          "description": "Producer",
+          "inputData": {
+            "broker": "kafka",
+            "clientId": "[workflowInstance.Id]",
+            "output-topic": "[workflowInstance.Id]",
+            "input-file": "/src/project/image-search/[workflowInstance.Id].txt",
+            "limit": "10"
+          }
+        },
+        {
+          "type": "Worker",
+          "catalogTaskDefinitionNamespace": "Meetup",
+          "catalogTaskDefinitionName": "UrlsConsumer",
+          "catalogTaskDefinitionVersion": 1,
+          "id": "a1896901-0c01-4839-b556-12517e01f8dd",
+          "description": "Consumer",
+          "inputData": {
+            "broker": "kafka",
+            "groupId": "[workflowInstance.Id]",
+            "input-topic": "[workflowInstance.Id]",
+            "output-dir": "/src/project/download-image/images/"
+          }
         }
       ]
     }
