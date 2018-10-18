@@ -6,6 +6,7 @@ export WORKFLOW_SERVICE_URL=$KOORDINATOR_URL/workflowsservice
 export MONITORING_SERVICE_URL=$KOORDINATOR_URL/monitoringservice
 export AUTH_SERVICE_URL=$KOORDINATOR_URL/authenticationservice
 
+echo Generating token...
 GENERATED_TOKEN=$(curl $AUTH_SERVICE_URL'/api/Authentication/User' \
                         -H 'Content-Type: application/json' \
                         --silent \
@@ -14,27 +15,34 @@ GENERATED_TOKEN=$(curl $AUTH_SERVICE_URL'/api/Authentication/User' \
                             "password":"'$WORKER_PASSWORD'"
                         }' | jq --raw-output '.value')
 
-echo token: $GENERATED_TOKEN
-
 export WORKER_TOKEN=$GENERATED_TOKEN
 
+echo Creating temporary scenario...
+SCENARIO_ID=$(uuidgen)
+sed "s/\[SCENARIOID\]/$SCENARIO_ID/g" < scenario.json > scenario.out.json
+
+curl $WORKFLOW_SERVICE_URL'/api/save' \
+    -H 'Authorization: Bearer '$GENERATED_TOKEN \
+    -H 'Content-Type: application/json' \
+    --silent \
+    --data "@scenario.out.json" > /dev/null
+
+echo Starting workers...
 bash ./run-workers.sh &
 WORKERS_PID=$!
 
-WORKFLOW_DEFINITION_NAME=MeetupScenarioCircleCI
-WORKFLOW_DEFINITION_VERSION=3
-
+echo Starting scenario...
 curl $WORKFLOW_SERVICE_URL'/api/start' \
     -H 'Authorization: Bearer '$GENERATED_TOKEN \
     -H 'Content-Type: application/json' \
     --silent \
     --data-binary '{
-        "WorkflowDefinitionId":"30d31d64-de09-469e-819a-bf09fb26975d",
-        "WorkflowDefinitionVersionNumber":'$WORKFLOW_DEFINITION_VERSION',
-        "WorkflowName":"'$WORKFLOW_DEFINITION_NAME'",
+        "WorkflowDefinitionId":"'$SCENARIO_ID'",
+        "WorkflowDefinitionVersionNumber": 0,
         "InputParameters":{"terms":"test"}
     }'
 
+echo Waiting scenario to finish...
 WORKFLOWS_COUNT=0
 
 while :; do
@@ -47,4 +55,14 @@ while :; do
     sleep 1
 done
 
+echo Deleting temporary scenario...
+
+sed "s/\"isDeleted\": false/\"isDeleted\": true/g" < scenario.out.json > scenario.outDelete.json
+curl $WORKFLOW_SERVICE_URL'/api/save' \
+    -H 'Authorization: Bearer '$GENERATED_TOKEN \
+    -H 'Content-Type: application/json' \
+    --silent \
+    --data "@scenario.outDelete.json" > /dev/null
+
+echo Killing workers...
 kill -9 $WORKERS_PID || true
