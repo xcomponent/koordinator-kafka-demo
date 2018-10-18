@@ -8,5 +8,8 @@ cd /src/project/image-search
 npm install 
 cd ..
 
+echo Installing uuidgen...
+sudo apt install uuid-runtime -y
+
 cd /src/project/
 bash ./test.sh
