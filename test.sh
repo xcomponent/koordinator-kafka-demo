@@ -27,7 +27,8 @@ curl $WORKFLOW_SERVICE_URL'/api/save' \
     --silent \
     --data "@scenario.out.json" > /dev/null
 
-WORKFLOW_DEFINITION_NAME=$(cat scenario.out.json | jq --raw-output .value)
+WORKFLOW_DEFINITION_NAME=$(cat scenario.out.json | jq --raw-output .name)
+echo Scenario name: $WORKFLOW_DEFINITION_NAME
 
 echo Starting workers...
 bash ./run-workers.sh &
