@@ -1,6 +1,6 @@
 {
   "id": "[SCENARIOID]",
-  "name": "MeetupScenario4CircleCI",
+  "name": "MeetupScenario4CircleCI-[SCENARIOID]",
   "type": "CommandCenter",
   "tasks": [
     {
