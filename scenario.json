@@ -26,10 +26,10 @@
           "id": "4761b16b-56cd-4313-ab22-d7232a11e215",
           "description": "Producer",
           "inputData": {
-            "broker": "kafka",
+            "broker": "[BROKER]",
             "clientId": "[workflowInstance.Id]",
             "output-topic": "[workflowInstance.Id]",
-            "input-file": "/src/project/image-search/[workflowInstance.Id].txt",
+            "input-file": "[PWD]/image-search/[workflowInstance.Id].txt",
             "limit": "10"
           }
         },
@@ -41,10 +41,10 @@
           "id": "a1896901-0c01-4839-b556-12517e01f8dd",
           "description": "Consumer",
           "inputData": {
-            "broker": "kafka",
+            "broker": "[BROKER]",
             "groupId": "[workflowInstance.Id]",
             "input-topic": "[workflowInstance.Id]",
-            "output-dir": "/src/project/download-image/images/"
+            "output-dir": "[PWD]/download-image/images/"
           }
         }
       ]

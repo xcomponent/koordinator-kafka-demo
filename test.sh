@@ -19,7 +19,11 @@ export WORKER_TOKEN=$GENERATED_TOKEN
 
 echo Creating temporary scenario...
 SCENARIO_ID=$(uuidgen)
-sed "s/\[SCENARIOID\]/$SCENARIO_ID/g" < scenario.json > scenario.out.json
+sed "
+s/\[SCENARIOID\]/$SCENARIO_ID/g
+s#\[PWD\]#$PWD#g
+s#\[BROKER\]#$KAFKA_BROKER#g
+" < scenario.json > scenario.out.json
 
 curl $WORKFLOW_SERVICE_URL'/api/save' \
     -H 'Authorization: Bearer '$GENERATED_TOKEN \
