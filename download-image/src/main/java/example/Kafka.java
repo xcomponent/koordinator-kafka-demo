@@ -86,6 +86,8 @@ public class Kafka {
     private static void downloadImage(String url, String outputFilename) throws Exception {
         URLConnection connection = new URL(url).openConnection();
 
+        connection.setConnectTimeout(3000);
+        connection.setReadTimeout(3000);
         connection.connect();
 
         String contentType = connection.getContentType();
