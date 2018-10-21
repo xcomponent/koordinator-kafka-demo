@@ -51,7 +51,7 @@ curl $WORKFLOW_SERVICE_URL'/api/start' \
 
 echo Waiting scenario to finish...
 
-timeout 60s bash <<"EOF"
+timeout 2m bash <<"EOF"
     WORKFLOWS_COUNT=0
 
     while :; do
