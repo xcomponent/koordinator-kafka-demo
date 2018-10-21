@@ -2,9 +2,9 @@
 set -o errexit
 set -o nounset
 
-export TASK_CATALOG_URL=https://ccenter.xcomponent.com/taskcatalogservice
-export TASK_STATUS_URL=https://ccenter.xcomponent.com/taskstatusservice
-export TASK_POLLING_URL=https://ccenter.xcomponent.com/pollingservice
+export TASK_CATALOG_URL=$KOORDINATOR_URL/taskcatalogservice
+export TASK_STATUS_URL=$KOORDINATOR_URL/taskstatusservice
+export TASK_POLLING_URL=$KOORDINATOR_URL/pollingservice
 
 cd image-search
 bash ./run.sh &

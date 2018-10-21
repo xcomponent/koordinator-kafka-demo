@@ -1,0 +1,58 @@
+{
+  "id": "[SCENARIOID]",
+  "name": "MeetupScenario4CircleCI-[SCENARIOID]",
+  "type": "CommandCenter",
+  "tasks": [
+    {
+      "type": "Worker",
+      "catalogTaskDefinitionNamespace": "Meetup",
+      "catalogTaskDefinitionName": "ImageSearch",
+      "catalogTaskDefinitionVersion": 1,
+      "id": "dd353e51-7213-40f9-8dd7-adb192510dc9",
+      "description": "Search Images",
+      "inputData": {
+        "terms": "[workflowInstance.inputData.terms]",
+        "outputFile": "[workflowInstance.Id].txt"
+      }
+    },
+    {
+      "type": "Pipeline",
+      "subTasks": [
+        {
+          "type": "Worker",
+          "catalogTaskDefinitionNamespace": "Meetup",
+          "catalogTaskDefinitionName": "UrlsProducer",
+          "catalogTaskDefinitionVersion": 1,
+          "id": "4761b16b-56cd-4313-ab22-d7232a11e215",
+          "description": "Producer",
+          "inputData": {
+            "broker": "[BROKER]",
+            "clientId": "[workflowInstance.Id]",
+            "output-topic": "[workflowInstance.Id]",
+            "input-file": "[PWD]/image-search/[workflowInstance.Id].txt",
+            "limit": "10"
+          }
+        },
+        {
+          "type": "Worker",
+          "catalogTaskDefinitionNamespace": "Meetup",
+          "catalogTaskDefinitionName": "UrlsConsumer",
+          "catalogTaskDefinitionVersion": 1,
+          "id": "a1896901-0c01-4839-b556-12517e01f8dd",
+          "description": "Consumer",
+          "inputData": {
+            "broker": "[BROKER]",
+            "groupId": "[workflowInstance.Id]",
+            "input-topic": "[workflowInstance.Id]",
+            "output-dir": "[PWD]/download-image/images/"
+          }
+        }
+      ]
+    }
+  ],
+  "live": true,
+  "schemaVersion": 0,
+  "isDeleted": false,
+  "workspaceName": "DefaultWorkspace",
+  "versionNumber": 0
+}

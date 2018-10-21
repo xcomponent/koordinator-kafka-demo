@@ -73,7 +73,7 @@ jobs:
           paths:
             - download-image/target
 
-  test:
+  test_standalone:
     docker:
       - image: circleci/openjdk:8-jdk-browsers
     steps:
@@ -93,11 +93,27 @@ jobs:
           name: Run standalone tests with kafka
           command: |
             docker run --volumes-from configs --link kafka:kafka circleci/openjdk:8-jdk-browsers /src/project/.circleci/test-multi.sh
+
+  test_koordinator:
+    docker:
+      - image: circleci/openjdk:8-jdk-browsers
+    steps:
+      - attach_workspace:
+          at: /home/circleci/project
+      - setup_remote_docker
+      - run:
+          name: Configure tests container
+          command: |
+            docker create -v /src --name configs alpine:3.7 /bin/true
+            docker cp /home/circleci/project configs:/src
+      - run:
+          name: Run kafka container
+          command: |
+            docker run --name kafka -d --rm -p 2181:2181 -p 9092:9092 --env ADVERTISED_HOST=kafka --env ADVERTISED_PORT=9092 --env AUTO_CREATE_TOPICS=true -h kafka spotify/kafka
       - run:
           name: Run Koordinator tests with kafka
           command: |
-            docker run --volumes-from configs --link kafka:kafka --env WORKER_USERNAME=$WORKER_USERNAME --env WORKER_PASSWORD=$WORKER_PASSWORD circleci/openjdk:8-jdk-browsers /src/project/.circleci/test.sh
-
+            docker run --volumes-from configs --link kafka:kafka --env KAFKA_BROKER=kafka --env KOORDINATOR_URL=$KOORDINATOR_URL --env WORKER_USERNAME=$WORKER_USERNAME --env WORKER_PASSWORD=$WORKER_PASSWORD circleci/openjdk:8-jdk-browsers /src/project/.circleci/test.sh
 workflows:
   version: 2
   build_and_test:
@@ -109,7 +125,11 @@ workflows:
       - build_download_image:
           requires:
             - checkout_code
-      - test:
+      - test_standalone:
+          requires:
+            - build_search_images
+            - build_download_image
+      - test_koordinator:
           requires:
             - build_search_images
             - build_download_image

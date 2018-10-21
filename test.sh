@@ -2,10 +2,11 @@
 set -o errexit
 set -o nounset
 
-export WORKFLOW_SERVICE_URL=https://ccenter.xcomponent.com/workflowsservice
-export MONITORING_SERVICE_URL=https://ccenter.xcomponent.com/monitoringservice
-export AUTH_SERVICE_URL=https://ccenter.xcomponent.com/authenticationservice
+export WORKFLOW_SERVICE_URL=$KOORDINATOR_URL/workflowsservice
+export MONITORING_SERVICE_URL=$KOORDINATOR_URL/monitoringservice
+export AUTH_SERVICE_URL=$KOORDINATOR_URL/authenticationservice
 
+echo Generating token...
 GENERATED_TOKEN=$(curl $AUTH_SERVICE_URL'/api/Authentication/User' \
                         -H 'Content-Type: application/json' \
                         --silent \
@@ -14,37 +15,64 @@ GENERATED_TOKEN=$(curl $AUTH_SERVICE_URL'/api/Authentication/User' \
                             "password":"'$WORKER_PASSWORD'"
                         }' | jq --raw-output '.value')
 
-echo token: $GENERATED_TOKEN
-
 export WORKER_TOKEN=$GENERATED_TOKEN
 
+echo Creating temporary scenario...
+SCENARIO_ID=$(uuidgen)
+sed "
+s/\[SCENARIOID\]/$SCENARIO_ID/g
+s#\[PWD\]#$PWD#g
+s#\[BROKER\]#$KAFKA_BROKER#g
+" < scenario.json > scenario.out.json
+
+curl $WORKFLOW_SERVICE_URL'/api/save' \
+    -H 'Authorization: Bearer '$GENERATED_TOKEN \
+    -H 'Content-Type: application/json' \
+    --silent \
+    --data "@scenario.out.json" > /dev/null
+
+export WORKFLOW_DEFINITION_NAME=$(cat scenario.out.json | jq --raw-output .name)
+echo Scenario name: $WORKFLOW_DEFINITION_NAME
+
+echo Starting workers...
 bash ./run-workers.sh &
 WORKERS_PID=$!
 
-WORKFLOW_DEFINITION_NAME=MeetupScenarioCircleCI
-WORKFLOW_DEFINITION_VERSION=3
-
+echo Starting scenario...
 curl $WORKFLOW_SERVICE_URL'/api/start' \
     -H 'Authorization: Bearer '$GENERATED_TOKEN \
     -H 'Content-Type: application/json' \
     --silent \
     --data-binary '{
-        "WorkflowDefinitionId":"30d31d64-de09-469e-819a-bf09fb26975d",
-        "WorkflowDefinitionVersionNumber":'$WORKFLOW_DEFINITION_VERSION',
-        "WorkflowName":"'$WORKFLOW_DEFINITION_NAME'",
-        "InputParameters":{"terms":"test"}
+        "WorkflowDefinitionId":"'$SCENARIO_ID'",
+        "WorkflowDefinitionVersionNumber": 0,
+        "InputParameters":{"terms":"cars"}
     }'
 
-WORKFLOWS_COUNT=0
+echo Waiting scenario to finish...
 
-while :; do
-    WORKFLOWS_COUNT=$(curl $MONITORING_SERVICE_URL'/api/WorkspaceWorkflowInstances?workspaceName=DefaultWorkspace&workflowInstanceStatus=Running&workflowInstanceName='$WORKFLOW_DEFINITION_NAME \
-        --silent \
-        -H 'Authorization: Bearer '$GENERATED_TOKEN | jq --raw-output 'length')
+timeout 2m bash <<"EOF"
+    WORKFLOWS_COUNT=0
 
-    echo count: $WORKFLOWS_COUNT
-    [ "$WORKFLOWS_COUNT" -gt 0 ] || break
-    sleep 1
-done
+    while :; do
+        WORKFLOWS_COUNT=$(curl $MONITORING_SERVICE_URL'/api/WorkspaceWorkflowInstances?workspaceName=DefaultWorkspace&workflowInstanceStatus=Running&workflowInstanceName='$WORKFLOW_DEFINITION_NAME \
+            --silent \
+            -H 'Authorization: Bearer '$WORKER_TOKEN | jq --raw-output 'length')
 
+        echo count: $WORKFLOWS_COUNT
+        [ "$WORKFLOWS_COUNT" -gt 0 ] || break
+        sleep 1
+    done
+EOF
+
+echo Deleting temporary scenario...
+
+sed "s/\"isDeleted\": false/\"isDeleted\": true/g" < scenario.out.json > scenario.outDelete.json
+curl $WORKFLOW_SERVICE_URL'/api/save' \
+    -H 'Authorization: Bearer '$GENERATED_TOKEN \
+    -H 'Content-Type: application/json' \
+    --silent \
+    --data "@scenario.outDelete.json" > /dev/null
+
+echo Killing workers...
 kill -9 $WORKERS_PID || true
