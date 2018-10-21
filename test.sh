@@ -64,7 +64,7 @@ function wait_finish {
     done
 }
 
-timeout 60 wait_finish()
+timeout 60 wait_finish
 
 echo Deleting temporary scenario...
 
