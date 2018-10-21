@@ -50,7 +50,8 @@ curl $WORKFLOW_SERVICE_URL'/api/start' \
     }'
 
 echo Waiting scenario to finish...
-function wait_finish {
+
+timeout 60s bash <<
     WORKFLOWS_COUNT=0
 
     while :; do
@@ -62,9 +63,7 @@ function wait_finish {
         [ "$WORKFLOWS_COUNT" -gt 0 ] || break
         sleep 1
     done
-}
-
-timeout 60 wait_finish
+EOF
 
 echo Deleting temporary scenario...
 
