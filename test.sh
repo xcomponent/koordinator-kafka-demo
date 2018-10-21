@@ -50,17 +50,21 @@ curl $WORKFLOW_SERVICE_URL'/api/start' \
     }'
 
 echo Waiting scenario to finish...
-WORKFLOWS_COUNT=0
+function wait_finish {
+    WORKFLOWS_COUNT=0
 
-while :; do
-    WORKFLOWS_COUNT=$(curl $MONITORING_SERVICE_URL'/api/WorkspaceWorkflowInstances?workspaceName=DefaultWorkspace&workflowInstanceStatus=Running&workflowInstanceName='$WORKFLOW_DEFINITION_NAME \
-        --silent \
-        -H 'Authorization: Bearer '$GENERATED_TOKEN | jq --raw-output 'length')
+    while :; do
+        WORKFLOWS_COUNT=$(curl $MONITORING_SERVICE_URL'/api/WorkspaceWorkflowInstances?workspaceName=DefaultWorkspace&workflowInstanceStatus=Running&workflowInstanceName='$WORKFLOW_DEFINITION_NAME \
+            --silent \
+            -H 'Authorization: Bearer '$GENERATED_TOKEN | jq --raw-output 'length')
 
-    echo count: $WORKFLOWS_COUNT
-    [ "$WORKFLOWS_COUNT" -gt 0 ] || break
-    sleep 1
-done
+        echo count: $WORKFLOWS_COUNT
+        [ "$WORKFLOWS_COUNT" -gt 0 ] || break
+        sleep 1
+    done
+}
+
+timeout 60 wait_finish()
 
 echo Deleting temporary scenario...
 
