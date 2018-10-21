@@ -46,7 +46,7 @@ curl $WORKFLOW_SERVICE_URL'/api/start' \
     --data-binary '{
         "WorkflowDefinitionId":"'$SCENARIO_ID'",
         "WorkflowDefinitionVersionNumber": 0,
-        "InputParameters":{"terms":"test"}
+        "InputParameters":{"terms":"cars"}
     }'
 
 echo Waiting scenario to finish...
