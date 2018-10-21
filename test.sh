@@ -31,7 +31,7 @@ curl $WORKFLOW_SERVICE_URL'/api/save' \
     --silent \
     --data "@scenario.out.json" > /dev/null
 
-WORKFLOW_DEFINITION_NAME=$(cat scenario.out.json | jq --raw-output .name)
+export WORKFLOW_DEFINITION_NAME=$(cat scenario.out.json | jq --raw-output .name)
 echo Scenario name: $WORKFLOW_DEFINITION_NAME
 
 echo Starting workers...
@@ -51,13 +51,13 @@ curl $WORKFLOW_SERVICE_URL'/api/start' \
 
 echo Waiting scenario to finish...
 
-timeout 60s bash <<EOF
+timeout 60s bash <<"EOF"
     WORKFLOWS_COUNT=0
 
     while :; do
         WORKFLOWS_COUNT=$(curl $MONITORING_SERVICE_URL'/api/WorkspaceWorkflowInstances?workspaceName=DefaultWorkspace&workflowInstanceStatus=Running&workflowInstanceName='$WORKFLOW_DEFINITION_NAME \
             --silent \
-            -H 'Authorization: Bearer '$GENERATED_TOKEN | jq --raw-output 'length')
+            -H 'Authorization: Bearer '$WORKER_TOKEN | jq --raw-output 'length')
 
         echo count: $WORKFLOWS_COUNT
         [ "$WORKFLOWS_COUNT" -gt 0 ] || break
