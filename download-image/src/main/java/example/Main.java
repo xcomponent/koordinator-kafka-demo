@@ -145,7 +145,7 @@ public class Main {
     private static void downloadImage(String url, String outputFilename) throws Exception {
         URLConnection connection = new URL(url).openConnection();
 
-        connection.setConnectionTimeout(3000);
+        connection.setConnectTimeout(3000);
         connection.setReadTimeout(3000);
         connection.connect();
 
