@@ -4,6 +4,10 @@ import java.security.cert.*;
 import javax.net.ssl.*;
 import java.net.*;
 import javax.json.*;
+import java.io.*;
+import java.nio.*;
+import java.nio.file.*;
+import java.util.zip.*;
 
 public class Worker {
     public static void consumer() throws Exception {
@@ -45,4 +49,55 @@ public class Worker {
         }
     }
 
+    public static void zipImages() throws Exception {
+        while (true) {
+           JsonObject task = Koordinator.retrieveTask("Meetup", "ZipImages");
+
+           if (task != null) {
+                String dir = ((JsonString)((JsonObject)task.get("inputData")).get("dir")).getString();
+
+                String uploadId = zipImages(dir);
+                Koordinator.sendStatus(task, "Finishe: " + uploadId, Koordinator.Status.Completed, Koordinator.ErrorLevel.None);
+           }
+
+           Thread.sleep(5000);
+        }
+    }
+
+    public static String zipImages(String dir) throws Exception {
+        System.out.println("Zip images in directory: " + dir + "...");
+        File zipFilePath = File.createTempFile("worker", ".zip");
+        zipFolder(dir, zipFilePath.getAbsolutePath());
+
+        System.out.println("Zip file created " + zipFilePath.getAbsolutePath() + "...");
+
+        String uploadId = Koordinator.uploadFile(zipFilePath.getAbsolutePath());
+        System.out.println("Uploaded file id: " + uploadId);
+
+        return uploadId;
+    }
+
+    // from:
+    // https://stackoverflow.com/questions/15968883/how-to-zip-a-folder-itself-using-java
+    public static void zipFolder(String sourceDirPath, String zipFilePath) throws IOException {
+        Path p = Paths.get(zipFilePath);
+        try (ZipOutputStream zs = new ZipOutputStream(Files.newOutputStream(p))) {
+            Path pp = Paths.get(sourceDirPath);
+            Files.walk(pp)
+              .filter(path -> !Files.isDirectory(path))
+              .limit(10)
+              .forEach(path -> {
+                  System.out.println(path + "...");
+                  ZipEntry zipEntry = new ZipEntry(pp.relativize(path).toString());
+                  try {
+                    zs.putNextEntry(zipEntry);
+                    Files.copy(path, zs);
+                    zs.closeEntry();
+                  } catch (IOException e) {
+                      System.err.println(e);
+                  }
+              });
+        }
+        System.out.println("DONE");
+    }
 }

@@ -48,6 +48,17 @@
           }
         }
       ]
+    },
+    {
+      "type": "Worker",
+      "catalogTaskDefinitionNamespace": "Meetup",
+      "catalogTaskDefinitionName": "ZipImages",
+      "catalogTaskDefinitionVersion": 1,
+      "id": "e155d3fb-bbe9-4728-9d70-768c25b29926",
+      "description": "ZipImages",
+      "inputData": {
+        "dir": "[PWD]/download-image/images/"
+      }
     }
   ],
   "live": true,

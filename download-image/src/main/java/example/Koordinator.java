@@ -10,9 +10,7 @@ import javax.net.ssl.*;
 import java.security.cert.*;
 import java.security.*;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
 
 public class Koordinator {
     public static enum ErrorLevel {
@@ -26,11 +24,13 @@ public class Koordinator {
     private static String Token;
     private static String TaskStatusServiceUrl;
     private static String TaskQueueServiceUrl;
+    private static String UploadServiceUrl;
 
     static {
         Token = System.getenv().get("WORKER_TOKEN");
         TaskStatusServiceUrl = System.getenv().get("TASK_STATUS_URL") + "/api/taskStatus";
         TaskQueueServiceUrl = System.getenv().get("TASK_POLLING_URL");
+        UploadServiceUrl = System.getenv().get("UPLOAD_URL");
     }
 
     public static boolean isTaskCancelled(String taskNamespace, String taskInstanceId) { 
@@ -62,14 +62,78 @@ public class Koordinator {
 
             if (connection.getResponseCode() == 200) {
                 return Json.createReader(connection.getInputStream()).readObject();
-            } else {
-                //System.out.printf("Response code: %d\n", connection.getResponseCode());
             }
             return null;
         } catch(Exception e) {
             return null;
         }
     }
+
+    public static String uploadFile(String filePath) throws IOException {
+        File originalFile = new File(filePath);
+        byte[] encodedBase64 = null;
+        try {
+            FileInputStream fileInputStreamReader = new FileInputStream(originalFile);
+            byte[] bytes = new byte[(int)originalFile.length()];
+            fileInputStreamReader.read(bytes);
+            encodedBase64 = bytes;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        UploadServiceUrl = "http://localhost:7099";
+        URL url = new URL(String.format("%s/api/Upload", UploadServiceUrl));
+
+        System.out.println("Uploading to: "+ url + "...");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Authorization", "bearer " + Token);
+        //connection.setFixedLengthStreamingMode(encodedBase64.length);
+        connection.setRequestProperty("Content-Length", ""+encodedBase64.length);
+        System.out.println("Content-length: " + encodedBase64.length + "...");
+        connection.setRequestProperty("Content-Type", "application/octet-stream");
+        //connection.setAllowUserInteraction(true);
+        connection.setDoOutput(true);
+
+        //connection.connect();
+
+        OutputStream os = new BufferedOutputStream(connection.getOutputStream());
+        os.write(encodedBase64);
+        //os.flush();
+        //os.close();
+
+        String output = "";
+
+        BufferedReader reader = null;
+        InputStream is = null;
+        try {
+            int responseCode = connection.getResponseCode();
+            System.out.println("Response code: "+ responseCode+ "...");
+            System.out.println("Response message: "+ connection.getResponseMessage()+ "...");
+            is = responseCode == 500 ? connection.getErrorStream() : connection.getInputStream();
+        } catch(IOException e) {
+            is = connection.getErrorStream();
+        }
+
+        reader =new BufferedReader(new InputStreamReader(is));
+        while(true) {
+            String line = reader.readLine();
+            if (line == null) break;
+            output += "\n" + line;
+        }
+        System.out.println("Response: " + output);
+
+        if (connection.getResponseCode() == 200) {
+            String id = output.trim();
+
+            reader.close();
+            return id;
+        }
+        return null;
+    }
+
 
     public static void sendStatus(JsonObject taskInstance, String message, Status status, ErrorLevel errorLevel) {
         try {
@@ -137,38 +201,7 @@ public class Koordinator {
             } catch (Exception e) {
             }
     }
-
-    static {
-        try {
-            TrustManager[] trustAllCerts = new TrustManager[]{
-                new X509TrustManager() {
-                    public X509Certificate[] getAcceptedIssuers() {
-                        X509Certificate[] myTrustedAnchors = new X509Certificate[0];
-                        return myTrustedAnchors;
-                    }
-
-                    @Override
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                    }
-
-                    @Override
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                    }
-                }
-                };
-
-                SSLContext sc = SSLContext.getInstance("SSL");
-                sc.init(null, trustAllCerts, new SecureRandom());
-                HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-                HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-                    @Override
-                    public boolean verify(String arg0, SSLSession arg1) {
-                        return true;
-                    }
-                });
-            } catch (Exception e) {
-            }
-    }}
+}
 
 
 
