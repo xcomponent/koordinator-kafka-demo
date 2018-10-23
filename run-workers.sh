@@ -5,7 +5,7 @@ set -o nounset
 export TASK_CATALOG_URL=$KOORDINATOR_URL/taskcatalogservice
 export TASK_STATUS_URL=$KOORDINATOR_URL/taskstatusservice
 export TASK_POLLING_URL=$KOORDINATOR_URL/pollingservice
-export UPLOAD_URL=$KOORDINATOR_URL/uploadservice
+export UPLOAD_URL=$KOORDINATOR_URL/uploadfileservice
 
 cd image-search
 bash ./run.sh &
