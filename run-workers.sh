@@ -21,7 +21,6 @@ echo Started consumer worker PID=$P2!
 bash ./run-producer-worker.sh &
 P3=$!
 echo Started producer worker PID=$P3!
-cd ..
 
 bash ./run-zipimages.sh &
 P4=$!
