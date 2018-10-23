@@ -49,12 +49,26 @@ curl $WORKFLOW_SERVICE_URL'/api/start' \
         "InputParameters":{"terms":"cars"}
     }'
 
-echo Waiting scenario to finish...
+timeout 30s bash <<"EOF"
+    WORKFLOWS_COUNT=0
+
+    while :; do
+        echo Waiting for scenario to start...
+        WORKFLOWS_COUNT=$(curl $MONITORING_SERVICE_URL'/api/WorkspaceWorkflowInstances?workspaceName=DefaultWorkspace&workflowInstanceStatus=Running&workflowInstanceName='$WORKFLOW_DEFINITION_NAME \
+            --silent \
+            -H 'Authorization: Bearer '$WORKER_TOKEN | jq --raw-output 'length')
+
+        echo count: $WORKFLOWS_COUNT
+        [ "$WORKFLOWS_COUNT" -gt 0 ] && break
+        sleep 1
+    done
+EOF
 
 timeout 2m bash <<"EOF"
     WORKFLOWS_COUNT=0
 
     while :; do
+        echo Waiting for scenario to stop...
         WORKFLOWS_COUNT=$(curl $MONITORING_SERVICE_URL'/api/WorkspaceWorkflowInstances?workspaceName=DefaultWorkspace&workflowInstanceStatus=Running&workflowInstanceName='$WORKFLOW_DEFINITION_NAME \
             --silent \
             -H 'Authorization: Bearer '$WORKER_TOKEN | jq --raw-output 'length')

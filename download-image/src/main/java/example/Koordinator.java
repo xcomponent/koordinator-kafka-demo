@@ -1,8 +1,6 @@
 package example;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonString;
+import javax.json.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -21,10 +19,10 @@ public class Koordinator {
         InProgress, Error, Completed 
     }
 
-    private static String Token;
-    private static String TaskStatusServiceUrl;
-    private static String TaskQueueServiceUrl;
-    private static String UploadServiceUrl;
+    public static String Token;
+    public static String TaskStatusServiceUrl;
+    public static String TaskQueueServiceUrl;
+    public static String UploadServiceUrl;
 
     static {
         Token = System.getenv().get("WORKER_TOKEN");
@@ -69,7 +67,7 @@ public class Koordinator {
         }
     }
 
-    public static String uploadFile(String filePath) throws IOException {
+    public static JsonObject uploadFile(String filePath) throws IOException {
         File originalFile = new File(filePath);
         byte[] encodedBase64 = null;
         try {
@@ -107,44 +105,49 @@ public class Koordinator {
 
         BufferedReader reader = null;
         InputStream is = null;
+        JsonObject ret = null;
         try {
             int responseCode = connection.getResponseCode();
             System.out.println("Response code: "+ responseCode+ "...");
             System.out.println("Response message: "+ connection.getResponseMessage()+ "...");
-            is = responseCode == 500 ? connection.getErrorStream() : connection.getInputStream();
+            if (responseCode == 200) {
+                ret = Json.createReader(connection.getInputStream()).readObject();
+            } else {
+                is = connection.getErrorStream();
+            }
         } catch(IOException e) {
             is = connection.getErrorStream();
         }
 
-        reader =new BufferedReader(new InputStreamReader(is));
-        while(true) {
-            String line = reader.readLine();
-            if (line == null) break;
-            output += "\n" + line;
-        }
-        System.out.println("Response: " + output);
-
-        if (connection.getResponseCode() == 200) {
-            String id = output.trim();
-
+        if (ret == null) {
+            reader =new BufferedReader(new InputStreamReader(is));
+            while(true) {
+                String line = reader.readLine();
+                if (line == null) break;
+                output += "\n" + line;
+            }
+            System.out.println("Response: " + output);
             reader.close();
-            return id;
+            return null;
         }
-        return null;
+        return ret;
     }
 
-
-    public static void sendStatus(JsonObject taskInstance, String message, Status status, ErrorLevel errorLevel) {
+    public static void sendStatus(JsonObject taskInstance, String message, Status status, ErrorLevel errorLevel, JsonObject outputs) {
         try {
             URL url = new URL(TaskStatusServiceUrl);
-            JsonObject taskStatus = Json
+            JsonObjectBuilder taskStatusBuilder = Json
                     .createObjectBuilder()
                     .add("message", message)
                     .add("status", status.name())
                     .add("errorLevel", errorLevel.name())
-                    .add("taskInstanceId", taskInstance.get("id"))
-                    .build();
-            sendJsonObject(url, taskStatus);
+                    .add("taskInstanceId", taskInstance.get("id"));
+
+            if (outputs != null) {
+                taskStatusBuilder = taskStatusBuilder.add("outputValues", outputs);
+            }
+
+            sendJsonObject(url, taskStatusBuilder.build());
         } catch(IOException e) {
             e.printStackTrace();
         }

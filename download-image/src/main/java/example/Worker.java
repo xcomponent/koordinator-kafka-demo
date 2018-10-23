@@ -22,7 +22,7 @@ public class Worker {
 
                 Kafka.consumer(broker, groupId, inputTopic, outputDir);
 
-                Koordinator.sendStatus(task, "Finished", Koordinator.Status.Completed, Koordinator.ErrorLevel.None);
+                Koordinator.sendStatus(task, "Finished", Koordinator.Status.Completed, Koordinator.ErrorLevel.None, null);
            }
 
            Thread.sleep(5000);
@@ -42,7 +42,7 @@ public class Worker {
 
                 Kafka.producer(broker, clientId, outputTopic, inputFile, limit);
 
-                Koordinator.sendStatus(task, "Finished", Koordinator.Status.Completed, Koordinator.ErrorLevel.None);
+                Koordinator.sendStatus(task, "Finished", Koordinator.Status.Completed, Koordinator.ErrorLevel.None, null);
            }
 
            Thread.sleep(5000);
@@ -56,8 +56,16 @@ public class Worker {
            if (task != null) {
                 String dir = ((JsonString)((JsonObject)task.get("inputData")).get("dir")).getString();
 
+
                 String uploadId = zipImages(dir);
-                Koordinator.sendStatus(task, "Finishe: " + uploadId, Koordinator.Status.Completed, Koordinator.ErrorLevel.None);
+                String downloadLink = Koordinator.UploadServiceUrl + "/api/Upload/" + uploadId;
+
+                JsonObject output = Json
+                        .createObjectBuilder()
+                        .add("zip", downloadLink)
+                        .build();
+
+                Koordinator.sendStatus(task, "[Zip]("+downloadLink+")" , Koordinator.Status.Completed, Koordinator.ErrorLevel.None, output);
            }
 
            Thread.sleep(5000);
@@ -71,9 +79,10 @@ public class Worker {
 
         System.out.println("Zip file created " + zipFilePath.getAbsolutePath() + "...");
 
-        String uploadId = Koordinator.uploadFile(zipFilePath.getAbsolutePath());
-        System.out.println("Uploaded file id: " + uploadId);
+        JsonObject uploadDescriptor = Koordinator.uploadFile(zipFilePath.getAbsolutePath());
+        String uploadId = ((JsonString)uploadDescriptor.get("fileId")).getString();
 
+        System.out.println("Uploaded file id: " + uploadId);
         return uploadId;
     }
 
@@ -85,7 +94,7 @@ public class Worker {
             Path pp = Paths.get(sourceDirPath);
             Files.walk(pp)
               .filter(path -> !Files.isDirectory(path))
-              .limit(10)
+              .limit(5)
               .forEach(path -> {
                   System.out.println(path + "...");
                   ZipEntry zipEntry = new ZipEntry(pp.relativize(path).toString());
