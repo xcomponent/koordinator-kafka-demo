@@ -1,4 +1,5 @@
 package example;
+
 import java.security.*;
 import java.security.cert.*;
 import javax.net.ssl.*;
@@ -75,7 +76,8 @@ public class Worker {
     public static String zipImages(String dir) throws Exception {
         System.out.println("Zip images in directory: " + dir + "...");
         File zipFilePath = File.createTempFile("worker", ".zip");
-        zipFolder(dir, zipFilePath.getAbsolutePath());
+
+        Utils.zipFolder(dir, zipFilePath.getAbsolutePath(), 5);
 
         System.out.println("Zip file created " + zipFilePath.getAbsolutePath() + "...");
 
@@ -84,29 +86,5 @@ public class Worker {
 
         System.out.println("Uploaded file id: " + uploadId);
         return uploadId;
-    }
-
-    // from:
-    // https://stackoverflow.com/questions/15968883/how-to-zip-a-folder-itself-using-java
-    public static void zipFolder(String sourceDirPath, String zipFilePath) throws IOException {
-        Path p = Paths.get(zipFilePath);
-        try (ZipOutputStream zs = new ZipOutputStream(Files.newOutputStream(p))) {
-            Path pp = Paths.get(sourceDirPath);
-            Files.walk(pp)
-              .filter(path -> !Files.isDirectory(path))
-              .limit(5)
-              .forEach(path -> {
-                  System.out.println(path + "...");
-                  ZipEntry zipEntry = new ZipEntry(pp.relativize(path).toString());
-                  try {
-                    zs.putNextEntry(zipEntry);
-                    Files.copy(path, zs);
-                    zs.closeEntry();
-                  } catch (IOException e) {
-                      System.err.println(e);
-                  }
-              });
-        }
-        System.out.println("DONE");
     }
 }
