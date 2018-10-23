@@ -2,10 +2,19 @@
 set -o errexit
 set -o nounset
 
-export TASK_CATALOG_URL=$KOORDINATOR_URL/taskcatalogservice
-export TASK_STATUS_URL=$KOORDINATOR_URL/taskstatusservice
-export TASK_POLLING_URL=$KOORDINATOR_URL/pollingservice
-export UPLOAD_URL=$KOORDINATOR_URL/uploadfileservice
+if [ -z "$RUN_LOCALHOST" ]
+then
+    export TASK_CATALOG_URL=$KOORDINATOR_URL/taskcatalogservice
+    export TASK_STATUS_URL=$KOORDINATOR_URL/taskstatusservice
+    export TASK_POLLING_URL=$KOORDINATOR_URL/pollingservice
+    export UPLOAD_URL=$KOORDINATOR_URL/uploadfileservice
+else
+    export KOORDINATOR_URL=http://localhost
+    export TASK_CATALOG_URL=$KOORDINATOR_URL:8099
+    export TASK_STATUS_URL=$KOORDINATOR_URL:9999
+    export TASK_POLLING_URL=$KOORDINATOR_URL:7000
+    export UPLOAD_URL=$KOORDINATOR_URL:7099
+fi
 
 cd image-search
 bash ./run.sh &

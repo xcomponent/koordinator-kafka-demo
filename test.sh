@@ -2,9 +2,17 @@
 set -o errexit
 set -o nounset
 
-export WORKFLOW_SERVICE_URL=$KOORDINATOR_URL/workflowsservice
-export MONITORING_SERVICE_URL=$KOORDINATOR_URL/monitoringservice
-export AUTH_SERVICE_URL=$KOORDINATOR_URL/authenticationservice
+if [ -z "$RUN_LOCALHOST" ]
+then
+    export WORKFLOW_SERVICE_URL=$KOORDINATOR_URL/workflowsservice
+    export MONITORING_SERVICE_URL=$KOORDINATOR_URL/monitoringservice
+    export AUTH_SERVICE_URL=$KOORDINATOR_URL/authenticationservice
+else
+    export KOORDINATOR_URL=http://localhost
+    export WORKFLOW_SERVICE_URL=$KOORDINATOR_URL:7060
+    export MONITORING_SERVICE_URL=$KOORDINATOR_URL:8079
+    export AUTH_SERVICE_URL=$KOORDINATOR_URL:9009
+fi
 
 echo Generating token...
 GENERATED_TOKEN=$(curl $AUTH_SERVICE_URL'/api/Authentication/User' \
