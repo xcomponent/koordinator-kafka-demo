@@ -26,7 +26,7 @@ public class Koordinator {
 
     static {
         Token = System.getenv().get("WORKER_TOKEN");
-        TaskStatusServiceUrl = System.getenv().get("TASK_STATUS_URL") + "/api/taskStatus";
+        TaskStatusServiceUrl = System.getenv().get("TASK_STATUS_URL");
         TaskQueueServiceUrl = System.getenv().get("TASK_POLLING_URL");
         UploadServiceUrl = System.getenv().get("UPLOAD_URL");
     }
@@ -87,25 +87,20 @@ public class Koordinator {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Authorization", "bearer " + Token);
-        //connection.setFixedLengthStreamingMode(encodedBase64.length);
         connection.setRequestProperty("Content-Length", ""+encodedBase64.length);
         System.out.println("Content-length: " + encodedBase64.length + "...");
         connection.setRequestProperty("Content-Type", "application/octet-stream");
-        //connection.setAllowUserInteraction(true);
         connection.setDoOutput(true);
-
-        //connection.connect();
 
         OutputStream os = new BufferedOutputStream(connection.getOutputStream());
         os.write(encodedBase64);
-        //os.flush();
-        //os.close();
 
         String output = "";
 
         BufferedReader reader = null;
         InputStream is = null;
         JsonObject ret = null;
+
         try {
             int responseCode = connection.getResponseCode();
             System.out.println("Response code: "+ responseCode+ "...");
@@ -120,7 +115,7 @@ public class Koordinator {
         }
 
         if (ret == null) {
-            reader =new BufferedReader(new InputStreamReader(is));
+            reader = new BufferedReader(new InputStreamReader(is));
             while(true) {
                 String line = reader.readLine();
                 if (line == null) break;
@@ -135,7 +130,7 @@ public class Koordinator {
 
     public static void sendStatus(JsonObject taskInstance, String message, Status status, ErrorLevel errorLevel, JsonObject outputs) {
         try {
-            URL url = new URL(TaskStatusServiceUrl);
+            URL url = new URL(String.format("%s/api/taskStatus", TaskStatusServiceUrl));
             JsonObjectBuilder taskStatusBuilder = Json
                     .createObjectBuilder()
                     .add("message", message)
