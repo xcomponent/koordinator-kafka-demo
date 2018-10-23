@@ -83,7 +83,6 @@ public class Koordinator {
             e.printStackTrace();
         }
 
-        UploadServiceUrl = "http://localhost:7099";
         URL url = new URL(String.format("%s/api/Upload", UploadServiceUrl));
 
         System.out.println("Uploading to: "+ url + "...");
