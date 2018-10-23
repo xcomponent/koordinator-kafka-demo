@@ -32,5 +32,5 @@ curl -X POST \
 echo Running worker... 
 mkdir images/ || true > /dev/null
 
-java -jar target/DownloadImage-1.0-SNAPSHOT-jar-with-dependencies.jar zipDownloader "/home/marcos/github/kafka-playground/download-image/images"
+java -jar target/DownloadImage-1.0-SNAPSHOT-jar-with-dependencies.jar zipWorker
 
