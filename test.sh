@@ -2,7 +2,7 @@
 set -o errexit
 set -o nounset
 
-if [ -z "$RUN_LOCALHOST" ]
+if [ -z "${RUN_LOCALHOST:-}" ]
 then
     export WORKFLOW_SERVICE_URL=$KOORDINATOR_URL/workflowsservice
     export MONITORING_SERVICE_URL=$KOORDINATOR_URL/monitoringservice
