@@ -58,7 +58,7 @@ public class Worker {
                 String dir = ((JsonString)((JsonObject)task.get("inputData")).get("dir")).getString();
 
 
-                String uploadId = zipImages(dir);
+                String uploadId = Utils.zipImages(dir);
                 String downloadLink = Koordinator.UploadServiceUrl + "/api/Upload/" + uploadId;
 
                 JsonObject output = Json
@@ -71,20 +71,5 @@ public class Worker {
 
            Thread.sleep(5000);
         }
-    }
-
-    public static String zipImages(String dir) throws Exception {
-        System.out.println("Zip images in directory: " + dir + "...");
-        File zipFilePath = File.createTempFile("worker", ".zip");
-
-        Utils.zipFolder(dir, zipFilePath.getAbsolutePath(), 5);
-
-        System.out.println("Zip file created " + zipFilePath.getAbsolutePath() + "...");
-
-        JsonObject uploadDescriptor = Koordinator.uploadFile(zipFilePath.getAbsolutePath());
-        String uploadId = ((JsonString)uploadDescriptor.get("fileId")).getString();
-
-        System.out.println("Uploaded file id: " + uploadId);
-        return uploadId;
     }
 }

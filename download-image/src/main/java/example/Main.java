@@ -15,7 +15,7 @@ public class Main {
             Worker.consumer();
         }
         if ("zipDownloader".equals(args[0])) {
-            Worker.zipImages(args[1]);
+            Utils.zipImages(args[1]);
         }
         if ("zipWorker".equals(args[0])) {
             Worker.zipImages();
