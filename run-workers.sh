@@ -2,7 +2,7 @@
 set -o errexit
 set -o nounset
 
-if [ -z "$RUN_LOCALHOST" ]
+if [ -z "${RUN_LOCALHOST:-}" ]
 then
     export TASK_CATALOG_URL=$KOORDINATOR_URL/taskcatalogservice
     export TASK_STATUS_URL=$KOORDINATOR_URL/taskstatusservice
