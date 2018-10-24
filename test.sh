@@ -2,9 +2,17 @@
 set -o errexit
 set -o nounset
 
-export WORKFLOW_SERVICE_URL=$KOORDINATOR_URL/workflowsservice
-export MONITORING_SERVICE_URL=$KOORDINATOR_URL/monitoringservice
-export AUTH_SERVICE_URL=$KOORDINATOR_URL/authenticationservice
+if [ -z "${RUN_LOCALHOST:-}" ]
+then
+    export WORKFLOW_SERVICE_URL=$KOORDINATOR_URL/workflowsservice
+    export MONITORING_SERVICE_URL=$KOORDINATOR_URL/monitoringservice
+    export AUTH_SERVICE_URL=$KOORDINATOR_URL/authenticationservice
+else
+    export KOORDINATOR_URL=http://localhost
+    export WORKFLOW_SERVICE_URL=$KOORDINATOR_URL:7060
+    export MONITORING_SERVICE_URL=$KOORDINATOR_URL:8079
+    export AUTH_SERVICE_URL=$KOORDINATOR_URL:9009
+fi
 
 echo Generating token...
 GENERATED_TOKEN=$(curl $AUTH_SERVICE_URL'/api/Authentication/User' \
@@ -49,12 +57,26 @@ curl $WORKFLOW_SERVICE_URL'/api/start' \
         "InputParameters":{"terms":"cars"}
     }'
 
-echo Waiting scenario to finish...
+timeout 30s bash <<"EOF"
+    WORKFLOWS_COUNT=0
+
+    while :; do
+        echo Waiting for scenario to start...
+        WORKFLOWS_COUNT=$(curl $MONITORING_SERVICE_URL'/api/WorkspaceWorkflowInstances?workspaceName=DefaultWorkspace&workflowInstanceStatus=Running&workflowInstanceName='$WORKFLOW_DEFINITION_NAME \
+            --silent \
+            -H 'Authorization: Bearer '$WORKER_TOKEN | jq --raw-output 'length')
+
+        echo count: $WORKFLOWS_COUNT
+        [ "$WORKFLOWS_COUNT" -gt 0 ] && break
+        sleep 1
+    done
+EOF
 
 timeout 2m bash <<"EOF"
     WORKFLOWS_COUNT=0
 
     while :; do
+        echo Waiting for scenario to stop...
         WORKFLOWS_COUNT=$(curl $MONITORING_SERVICE_URL'/api/WorkspaceWorkflowInstances?workspaceName=DefaultWorkspace&workflowInstanceStatus=Running&workflowInstanceName='$WORKFLOW_DEFINITION_NAME \
             --silent \
             -H 'Authorization: Bearer '$WORKER_TOKEN | jq --raw-output 'length')

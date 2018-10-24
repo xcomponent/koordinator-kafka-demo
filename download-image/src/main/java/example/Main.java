@@ -14,6 +14,12 @@ public class Main {
         if ("consumerWorker".equals(args[0])) {
             Worker.consumer();
         }
+        if ("zipDownloader".equals(args[0])) {
+            Utils.zipImages(args[1]);
+        }
+        if ("zipWorker".equals(args[0])) {
+            Worker.zipImages();
+        }
     }
 }
 

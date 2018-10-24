@@ -1,8 +1,6 @@
 package example;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonString;
+import javax.json.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -10,9 +8,7 @@ import javax.net.ssl.*;
 import java.security.cert.*;
 import java.security.*;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
 
 public class Koordinator {
     public static enum ErrorLevel {
@@ -23,14 +19,16 @@ public class Koordinator {
         InProgress, Error, Completed 
     }
 
-    private static String Token;
-    private static String TaskStatusServiceUrl;
-    private static String TaskQueueServiceUrl;
+    public static String Token;
+    public static String TaskStatusServiceUrl;
+    public static String TaskQueueServiceUrl;
+    public static String UploadServiceUrl;
 
     static {
         Token = System.getenv().get("WORKER_TOKEN");
-        TaskStatusServiceUrl = System.getenv().get("TASK_STATUS_URL") + "/api/taskStatus";
+        TaskStatusServiceUrl = System.getenv().get("TASK_STATUS_URL");
         TaskQueueServiceUrl = System.getenv().get("TASK_POLLING_URL");
+        UploadServiceUrl = System.getenv().get("UPLOAD_URL");
     }
 
     public static boolean isTaskCancelled(String taskNamespace, String taskInstanceId) { 
@@ -62,8 +60,6 @@ public class Koordinator {
 
             if (connection.getResponseCode() == 200) {
                 return Json.createReader(connection.getInputStream()).readObject();
-            } else {
-                //System.out.printf("Response code: %d\n", connection.getResponseCode());
             }
             return null;
         } catch(Exception e) {
@@ -71,17 +67,82 @@ public class Koordinator {
         }
     }
 
-    public static void sendStatus(JsonObject taskInstance, String message, Status status, ErrorLevel errorLevel) {
+    public static JsonObject uploadFile(String filePath) throws IOException {
+        File originalFile = new File(filePath);
+        byte[] encodedBase64 = null;
         try {
-            URL url = new URL(TaskStatusServiceUrl);
-            JsonObject taskStatus = Json
+            FileInputStream fileInputStreamReader = new FileInputStream(originalFile);
+            byte[] bytes = new byte[(int)originalFile.length()];
+            fileInputStreamReader.read(bytes);
+            encodedBase64 = bytes;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        URL url = new URL(String.format("%s/api/Upload", UploadServiceUrl));
+
+        System.out.println("Uploading to: "+ url + "...");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Authorization", "bearer " + Token);
+        connection.setRequestProperty("Content-Length", ""+encodedBase64.length);
+        System.out.println("Content-length: " + encodedBase64.length + "...");
+        connection.setRequestProperty("Content-Type", "application/octet-stream");
+        connection.setDoOutput(true);
+
+        OutputStream os = new BufferedOutputStream(connection.getOutputStream());
+        os.write(encodedBase64);
+
+        String output = "";
+
+        BufferedReader reader = null;
+        InputStream is = null;
+        JsonObject ret = null;
+
+        try {
+            int responseCode = connection.getResponseCode();
+            System.out.println("Response code: "+ responseCode+ "...");
+            System.out.println("Response message: "+ connection.getResponseMessage()+ "...");
+            if (responseCode == 200) {
+                ret = Json.createReader(connection.getInputStream()).readObject();
+            } else {
+                is = connection.getErrorStream();
+            }
+        } catch(IOException e) {
+            is = connection.getErrorStream();
+        }
+
+        if (ret == null) {
+            reader = new BufferedReader(new InputStreamReader(is));
+            while(true) {
+                String line = reader.readLine();
+                if (line == null) break;
+                output += "\n" + line;
+            }
+            System.out.println("Response: " + output);
+            reader.close();
+            return null;
+        }
+        return ret;
+    }
+
+    public static void sendStatus(JsonObject taskInstance, String message, Status status, ErrorLevel errorLevel, JsonObject outputs) {
+        try {
+            URL url = new URL(String.format("%s/api/taskStatus", TaskStatusServiceUrl));
+            JsonObjectBuilder taskStatusBuilder = Json
                     .createObjectBuilder()
                     .add("message", message)
                     .add("status", status.name())
                     .add("errorLevel", errorLevel.name())
-                    .add("taskInstanceId", taskInstance.get("id"))
-                    .build();
-            sendJsonObject(url, taskStatus);
+                    .add("taskInstanceId", taskInstance.get("id"));
+
+            if (outputs != null) {
+                taskStatusBuilder = taskStatusBuilder.add("outputValues", outputs);
+            }
+
+            sendJsonObject(url, taskStatusBuilder.build());
         } catch(IOException e) {
             e.printStackTrace();
         }
@@ -137,38 +198,7 @@ public class Koordinator {
             } catch (Exception e) {
             }
     }
-
-    static {
-        try {
-            TrustManager[] trustAllCerts = new TrustManager[]{
-                new X509TrustManager() {
-                    public X509Certificate[] getAcceptedIssuers() {
-                        X509Certificate[] myTrustedAnchors = new X509Certificate[0];
-                        return myTrustedAnchors;
-                    }
-
-                    @Override
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                    }
-
-                    @Override
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                    }
-                }
-                };
-
-                SSLContext sc = SSLContext.getInstance("SSL");
-                sc.init(null, trustAllCerts, new SecureRandom());
-                HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-                HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-                    @Override
-                    public boolean verify(String arg0, SSLSession arg1) {
-                        return true;
-                    }
-                });
-            } catch (Exception e) {
-            }
-    }}
+}
 
 
 

@@ -1,9 +1,14 @@
 package example;
+
 import java.security.*;
 import java.security.cert.*;
 import javax.net.ssl.*;
 import java.net.*;
 import javax.json.*;
+import java.io.*;
+import java.nio.*;
+import java.nio.file.*;
+import java.util.zip.*;
 
 public class Worker {
     public static void consumer() throws Exception {
@@ -18,7 +23,7 @@ public class Worker {
 
                 Kafka.consumer(broker, groupId, inputTopic, outputDir);
 
-                Koordinator.sendStatus(task, "Finished", Koordinator.Status.Completed, Koordinator.ErrorLevel.None);
+                Koordinator.sendStatus(task, "Finished", Koordinator.Status.Completed, Koordinator.ErrorLevel.None, null);
            }
 
            Thread.sleep(5000);
@@ -38,11 +43,33 @@ public class Worker {
 
                 Kafka.producer(broker, clientId, outputTopic, inputFile, limit);
 
-                Koordinator.sendStatus(task, "Finished", Koordinator.Status.Completed, Koordinator.ErrorLevel.None);
+                Koordinator.sendStatus(task, "Finished", Koordinator.Status.Completed, Koordinator.ErrorLevel.None, null);
            }
 
            Thread.sleep(5000);
         }
     }
 
+    public static void zipImages() throws Exception {
+        while (true) {
+           JsonObject task = Koordinator.retrieveTask("Meetup", "ZipImages");
+
+           if (task != null) {
+                String dir = ((JsonString)((JsonObject)task.get("inputData")).get("dir")).getString();
+
+
+                String uploadId = Utils.zipImages(dir);
+                String downloadLink = Koordinator.UploadServiceUrl + "/api/Upload/" + uploadId;
+
+                JsonObject output = Json
+                        .createObjectBuilder()
+                        .add("zip", downloadLink)
+                        .build();
+
+                Koordinator.sendStatus(task, "[Zip]("+downloadLink+")" , Koordinator.Status.Completed, Koordinator.ErrorLevel.None, output);
+           }
+
+           Thread.sleep(5000);
+        }
+    }
 }
