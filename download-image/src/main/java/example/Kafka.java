@@ -12,6 +12,11 @@ public class Kafka {
     private static final String KILL_MESSAGE = "KILL";
 
     public static void consumer(String broker, String groupId, String topicToRead, String outputDir) throws Exception {
+        File directory = new File(outputDir);
+        if (!directory.exists()) {
+            directory.mkdir();
+        }
+
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, broker+":9092");
         props.put(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
@@ -95,7 +100,10 @@ public class Kafka {
         System.out.printf("Content type %s...\n", contentType);
 
         InputStream in = connection.getInputStream();
-        Files.copy(in, Paths.get(outputFilename + getExtensionFromContentType(contentType)), StandardCopyOption.REPLACE_EXISTING);
+        String extension = getExtensionFromContentType(contentType);
+        if (extension != null) {
+            Files.copy(in, Paths.get(outputFilename + extension), StandardCopyOption.REPLACE_EXISTING);
+        }
         in.close();
     }
 
@@ -106,6 +114,6 @@ public class Kafka {
         if ("image/png".equals(contentType)) {
             return ".png";
         }
-        return "";
+        return null;
     }
 }

@@ -22,7 +22,6 @@ public class Utils {
         return uploadId;
     }
 
-    // from: https://stackoverflow.com/questions/15968883/how-to-zip-a-folder-itself-using-java
     private static void zipFolder(String sourceDirPath, String zipFilePath, int limit) throws IOException {
         Path p = Paths.get(zipFilePath);
         try (ZipOutputStream zs = new ZipOutputStream(Files.newOutputStream(p))) {
