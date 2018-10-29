@@ -44,7 +44,7 @@
             "broker": "[BROKER]",
             "groupId": "[workflowInstance.Id]",
             "input-topic": "[workflowInstance.Id]",
-            "output-dir": "[PWD]/download-image/images/"
+            "output-dir": "[PWD]/download-image/images/[workflowInstance.Id]/"
           }
         }
       ]
@@ -57,7 +57,7 @@
       "id": "e155d3fb-bbe9-4728-9d70-768c25b29926",
       "description": "ZipImages",
       "inputData": {
-        "dir": "[PWD]/download-image/images/"
+        "input-dir": "[Consumer.inputData.output-dir]"
       }
     }
   ],
