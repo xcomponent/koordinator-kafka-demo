@@ -57,7 +57,7 @@
       "id": "e155d3fb-bbe9-4728-9d70-768c25b29926",
       "description": "ZipImages",
       "inputData": {
-        "dir": "[Consumer.inputData.output-dir]"
+        "dir": "[a1896901-0c01-4839-b556-12517e01f8dd.inputData.output-dir]"
       }
     }
   ],
