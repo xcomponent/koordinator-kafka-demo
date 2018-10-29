@@ -2,7 +2,7 @@ const koor = require("./koordinator.js");
 const fs = require("fs");
 const gIS = require("g-i-s");
 
-const namespace = "Meetup";
+const namespace = "Demo";
 const name = "ImageSearch";
 
 function doWork(terms, outputFile, cbWork) {

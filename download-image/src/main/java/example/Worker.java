@@ -13,7 +13,7 @@ import java.util.zip.*;
 public class Worker {
     public static void consumer() throws Exception {
         while (true) {
-           JsonObject task = Koordinator.retrieveTask("Meetup", "UrlsConsumer");
+           JsonObject task = Koordinator.retrieveTask("Demo", "UrlsConsumer");
 
            if (task != null) {
                 String broker = ((JsonString)((JsonObject)task.get("inputData")).get("broker")).getString();
@@ -32,7 +32,7 @@ public class Worker {
 
     public static void producer() throws Exception {
         while (true) {
-           JsonObject task = Koordinator.retrieveTask("Meetup", "UrlsProducer");
+           JsonObject task = Koordinator.retrieveTask("Demo", "UrlsProducer");
 
            if (task != null) {
                 String broker = ((JsonString)((JsonObject)task.get("inputData")).get("broker")).getString();
@@ -52,7 +52,7 @@ public class Worker {
 
     public static void zipImages() throws Exception {
         while (true) {
-           JsonObject task = Koordinator.retrieveTask("Meetup", "ZipImages");
+           JsonObject task = Koordinator.retrieveTask("Demo", "ZipImages");
 
            if (task != null) {
                 String dir = ((JsonString)((JsonObject)task.get("inputData")).get("dir")).getString();

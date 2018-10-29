@@ -12,7 +12,7 @@ curl -X POST \
   -d '{
    "catalogTaskDefinitions": [ 
      {
-       "namespace": "Meetup",
+       "namespace": "Demo",
        "name": "UrlsConsumer",
        "inputs": [ 
            {
